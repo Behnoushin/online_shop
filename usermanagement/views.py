@@ -2,7 +2,6 @@ from .models import UserProfile, PurchaseHistory, CustomUser
 from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 
 class UserRegistrationView(generics.CreateAPIView):

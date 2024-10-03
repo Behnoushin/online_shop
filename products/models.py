@@ -32,3 +32,4 @@ class CartProduct(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
 
+
