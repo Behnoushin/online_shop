@@ -41,9 +41,17 @@ INSTALLED_APPS = [
     "product",
     "user_management",
     "rest_framework",
+    "rest_framework_simplejwt",
     #"usermanagement",
     #"products",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

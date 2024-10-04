@@ -2,6 +2,8 @@ from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, 
 from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 
 
 class ProductList(generics.ListCreateAPIView):
@@ -52,15 +54,21 @@ class CartProductsDetail(generics.RetrieveUpdateDestroyAPIView):
 class FavoriteListView (generics.ListCreateAPIView):
     queryset = FavoriteList.objects.all()
     serializer_class = FavoritelistSerializer
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         return FavoriteList.objects.filter(user=self.request.user)
     
     def create(self, request, *args, **kwargs):
-        FavoriteList, created = FavoriteList.objects.get_or_create(user=request.user)
+        if request.user.is_anonymous: 
+            raise PermissionDenied("برای دسترسی به این عمل، باید وارد سیستم شوید.")
+        
+        favorite_list, created = FavoriteList.objects.get_or_create(user=request.user)
+        
         product_id = request.data.get("product_id")
         product = Product.objects.get(id=product_id)
-        FavoriteList.product.add(product)
+        
+        favorite_list.product.add(product)
         return Response({"message": "محصول به لیست علاقه مندی اضافه شد"}, status=status.HTTP_201_CREATED)
         
 class RemoveFromFavoriteList(generics.DestroyAPIView):
