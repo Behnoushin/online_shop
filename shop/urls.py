@@ -23,4 +23,5 @@ path("admin/", admin.site.urls),
 path("info/", include('info.urls')),
 path("product/", include('product.urls')),
 path("user_management/", include('user_management.urls')),
+path("crm/", include('crm.urls')),
 ]

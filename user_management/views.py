@@ -54,3 +54,7 @@ class PurchaseHistoryView(generics.ListAPIView):
 
     def get_queryset(self):
         return PurchaseHistory.objects.filter(user=self.request.user)
+
+class PurchaseHistoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = PurchaseHistory.objects.all()
+    serializer_class = PurchaseHistorySerializer
