@@ -1,12 +1,13 @@
 from django.db import models
+from utility.models import BaseModel
 
-class AboutUs(models.Model):
+class AboutUs(BaseModel):
     content = models.TextField()
 
     def __str__(self):
         return "About Us"
 
-class ContactUs(models.Model):
+class ContactUs(BaseModel):
     email = models.EmailField()
     phone = models.CharField(max_length=20)
     address = models.TextField()
@@ -14,7 +15,7 @@ class ContactUs(models.Model):
     def __str__(self):
         return "Contact Us"
 
-class FAQ(models.Model):
+class FAQ(BaseModel):
     question = models.CharField(max_length=300)
     answer = models.TextField()
 

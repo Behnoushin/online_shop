@@ -2,23 +2,23 @@ from rest_framework import serializers
 from .models import UserProfile, PurchaseHistory
 from product.serializers import ProductSerializer
 from .models import CustomUser
+from utility.serializers import BaseSerializer
 
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
+class UserProfileSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
         model = UserProfile
         fields = "__all__"
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
+class UserSerializer(BaseSerializer):
+    class Meta(BaseSerializer.Meta):
         model = CustomUser
-        fields = ["id", "username", "email", "phone_number", "age"]
+        fields = "__all__"
 
 
-class PurchaseHistorySerializer(serializers.ModelSerializer):
+class PurchaseHistorySerializer(BaseSerializer):
     product = ProductSerializer()
 
-    class Meta:
+    class Meta(BaseSerializer.Meta):
         model = PurchaseHistory
         fields = "__all__"

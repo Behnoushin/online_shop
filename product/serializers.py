@@ -1,14 +1,15 @@
 from rest_framework import serializers
 from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review
+from utility.serializers import BaseSerializer
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(BaseSerializer):
     class Meta:
         model = Category
         fields = "__all__"
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(BaseSerializer):
     category = CategorySerializer()
 
     class Meta:
@@ -16,7 +17,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CartProductSerializer(serializers.ModelSerializer):
+class CartProductSerializer(BaseSerializer):
     product = ProductSerializer(many=True)
 
     class Meta:
@@ -24,24 +25,24 @@ class CartProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CartSerializer(serializers.ModelSerializer):
+class CartSerializer(BaseSerializer):
     class Meta:
         model = Cart
         fields = "__all__"
 
-class FavoritelistSerializer(serializers.ModelSerializer):
+class FavoritelistSerializer(BaseSerializer):
     products = ProductSerializer(many=True)
 
     class Meta:
         model = FavoriteList
         fields = "__all__"
 
-class RatingSerializer(serializers.ModelSerializer):
+class RatingSerializer(BaseSerializer):
     class Meta:
         model:Rating
         fields = "__all__"
         
-class ReviewSerializer(serializers.ModelSerializer):
+class ReviewSerializer(BaseSerializer):
     class Meta:
         model:Review
         fields = "__all__"

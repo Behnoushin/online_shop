@@ -4,34 +4,35 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from utility.views import BaseAPIView
 
 
-class ProductList(generics.ListCreateAPIView):
+class ProductList(BaseAPIView, generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 
-class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
+class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 
-class CategoryList(generics.ListCreateAPIView):
+class CategoryList(BaseAPIView, generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
-class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
+class CategoryDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
-class CartView(generics.ListCreateAPIView):
+class CartView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
 
-class CartProductsDetail(generics.RetrieveUpdateDestroyAPIView):
+class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = CartProduct.objects.all()
     serializer_class = CartProductSerializer
 
@@ -51,7 +52,7 @@ class CartProductsDetail(generics.RetrieveUpdateDestroyAPIView):
         )
 
 
-class FavoriteListView (generics.ListCreateAPIView):
+class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
     queryset = FavoriteList.objects.all()
     serializer_class = FavoritelistSerializer
     permission_classes = [IsAuthenticated]
@@ -71,7 +72,7 @@ class FavoriteListView (generics.ListCreateAPIView):
         favorite_list.product.add(product)
         return Response({"message": "محصول به لیست علاقه مندی اضافه شد"}, status=status.HTTP_201_CREATED)
         
-class RemoveFromFavoriteList(generics.DestroyAPIView):
+class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
     queryset = FavoriteList.objects.all()
     serializer_class = FavoritelistSerializer
     
@@ -82,11 +83,11 @@ class RemoveFromFavoriteList(generics.DestroyAPIView):
         FavoriteList.product.remove(product)
         return Response({"message": "محصول از لیست علاقه مندی حذف شد"}, status=status.HTTP_204_NO_CONTENT)
     
-class RatingView(generics.ListCreateAPIView):
+class RatingView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
     
-class ReviewView(generics.ListCreateAPIView):
+class ReviewView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     

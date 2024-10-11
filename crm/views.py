@@ -40,15 +40,9 @@ class AdminDashboardDataView(RetrieveAPIView):
             "orders_by_status": PurchaseHistory.objects.values('status').annotate(count=Count('id')),
             "average_order_value": PurchaseHistory.objects.aggregate(Avg('product__price'))['product__price__avg'] or 0,
             "best_customers": CustomUser.objects.annotate(order_count=Count('purchasehistory')).order_by('-order_count')[:5],
-            "total_discount_given": 0,
-            "pending_refunds": 0,
             "revenue_breakdown_by_month": PurchaseHistory.objects.filter(purchase_date__year=now.year).extra(select={'month': 'EXTRACT(MONTH FROM purchase_date)'}).values('month').annotate(total_revenue=Sum('product__price')),
             "low_stock_products": Product.objects.filter(stock__lt=10).count(),
             "new_products_added_this_week": Product.objects.filter(created_at__gte=last_7_days).count(),
-            "cancelled_orders": 0,
-            "top_payment_methods": 0,
-            "shipping_costs_breakdown": 0,
-            "active_promotions": 0,
         }
         return Response(data)
 

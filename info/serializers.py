@@ -1,19 +1,20 @@
 from rest_framework import serializers
 from .models import AboutUs, ContactUs, FAQ
+from utility.serializers import BaseSerializer
 
-class AboutUsSerializer(serializers.ModelSerializer):
+class AboutUsSerializer(BaseSerializer):
     class Meta:
         model = AboutUs
         fields = "__all__"
 
 
-class ContactUsSerializer(serializers.ModelSerializer):
+class ContactUsSerializer(BaseSerializer):
     class Meta:
         model = ContactUs
         fields = "__all__"
 
 
-class FAQSerializer(serializers.ModelSerializer):
+class FAQSerializer(BaseSerializer):
     class Meta:
         model = FAQ
         fields = "__all__"

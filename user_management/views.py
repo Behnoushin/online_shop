@@ -4,8 +4,9 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from utility.views import BaseAPIView
 
-class UserRegistrationView(generics.CreateAPIView):
+class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserProfileSerializer
 
@@ -24,7 +25,8 @@ class UserRegistrationView(generics.CreateAPIView):
         UserProfile.objects.create(user=user)
         return Response({"message": "ثبت نام با موفقیت انجام شد"}, status=status.HTTP_201_CREATED)
 
-class UserLoginView(generics.GenericAPIView):
+
+class UserLoginView(BaseAPIView, generics.GenericAPIView):
     serializer_class = UserSerializer
 
     def post(self, request, *args, **kwargs):
@@ -42,19 +44,23 @@ class UserLoginView(generics.GenericAPIView):
 
         return Response({"error": "نام کاربری یا رمز عبور اشتباه است"}, status=status.HTTP_400_BAD_REQUEST)
 
-class UserProfileView(generics.RetrieveUpdateAPIView):
+
+class UserProfileView(BaseAPIView, generics.RetrieveUpdateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
 
     def get_object(self):
         return UserProfile.objects.get(user=self.request.user)
 
-class PurchaseHistoryView(generics.ListAPIView):
+
+class PurchaseHistoryView(BaseAPIView, generics.ListAPIView):
     serializer_class = PurchaseHistorySerializer
 
     def get_queryset(self):
         return PurchaseHistory.objects.filter(user=self.request.user)
 
-class PurchaseHistoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+
+class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = PurchaseHistory.objects.all()
     serializer_class = PurchaseHistorySerializer
+    
