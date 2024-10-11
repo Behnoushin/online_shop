@@ -1,6 +1,5 @@
 from django.contrib import admin
 from .models import Product, Category, Cart, FavoriteList, Rating, Review
-from user_management.models import CustomUser 
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ["id", "title", "price", "category"]
@@ -17,17 +16,6 @@ class CartAdmin(admin.ModelAdmin):
     list_display = ["id", "created_at", "user"]
     list_filter = ["created_at"]
     search_fields = ["products__title"]
-
-
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ["id", "user", "address"]
-    search_fields = ["user__username", "address"]
-
-
-class PurchaseHistoryAdmin(admin.ModelAdmin):
-    list_display = ["id", "user", "product", "quantity", "purchase_date"]
-    list_filter = ["purchase_date"]
-    search_fields = ["user__username", "product__title"]
 
 class FavoriteListAdmin(admin.ModelAdmin):
     list_display = ["id", "user"]

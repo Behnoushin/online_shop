@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "user_management",
     "rest_framework",
     "rest_framework_simplejwt",
+    "crm",
     #"usermanagement",
     #"products",
 ]
