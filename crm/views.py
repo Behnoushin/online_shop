@@ -1,14 +1,15 @@
 from rest_framework import generics
-from .models import AppAdmin
-from .serializers import AppAdminSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
+from product.models import Product, Category
+from product.serializers import ProductSerializer, CategorySerializer
 
-class AppAdminListCreateView(generics.ListCreateAPIView):
-    queryset = AppAdmin.objects.all()
-    serializer_class = AppAdminSerializer
-    permission_classes = [IsAuthenticated]
-    
-class AppAdminDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = AppAdmin.objects.all()
-    serializer_class = AppAdminSerializer
-    permission_classes = [IsAuthenticated]
+class ProductUpdate(generics.UpdateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
+
+class CategoryListUpdate(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser]
+
