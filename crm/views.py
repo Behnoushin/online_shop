@@ -6,8 +6,9 @@ from product.models import Product, Category
 from product.serializers import ProductSerializer, CategorySerializer
 from datetime import datetime, timedelta
 from user_management.models import CustomUser, PurchaseHistory
+from user_management.serializers import UserSerializer
 from django.db.models import Sum, Count, Avg
-
+from utility.mixins import SoftDeleteMixin
 
 class ProductUpdate(generics.UpdateAPIView):
     queryset = Product.objects.all()
@@ -46,3 +47,11 @@ class AdminDashboardDataView(RetrieveAPIView):
         }
         return Response(data)
 
+
+class ProductDeleteView(SoftDeleteMixin, generics.DestroyAPIView):
+    queryset = Product.objects.filter(is_deleted=False)
+    serializer_class = ProductSerializer 
+
+class UserProfileDeleteView(SoftDeleteMixin, generics.DestroyAPIView):
+    queryset = CustomUser.objects.filter(is_deleted=False)
+    serializer_class = UserSerializer

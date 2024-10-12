@@ -1,11 +1,11 @@
 from rest_framework import generics
+from .mixins import SoftDeleteMixin
 
 class BaseAPIView(generics.GenericAPIView):
-    
+    pass
+
+class SoftDeleteGenericView(SoftDeleteMixin, generics.DestroyAPIView):
+    serializer_class = None 
+
     def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(is_deleted=False)
-
-    def get_serializer_class(self):
-        raise NotImplementedError
-
+        return super().get_queryset().filter(is_deleted=False)

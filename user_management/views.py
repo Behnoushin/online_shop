@@ -5,6 +5,10 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from utility.views import BaseAPIView
+from .permissions import IsStaffUser
+from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import PermissionDenied
+
 
 class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -48,14 +52,21 @@ class UserLoginView(BaseAPIView, generics.GenericAPIView):
 class UserProfileView(BaseAPIView, generics.RetrieveUpdateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return UserProfile.objects.get(user=self.request.user)
+        user = self.request.user
+        if user.is_authenticated:
+            return UserProfile.objects.get(user=user)
+        else:
+            raise PermissionDenied("شما باید وارد حساب خود شوید تا به پروفایل دسترسی داشته باشید.")
+
 
 
 class PurchaseHistoryView(BaseAPIView, generics.ListAPIView):
     serializer_class = PurchaseHistorySerializer
-
+    permission_classes = [IsStaffUser]
+    
     def get_queryset(self):
         return PurchaseHistory.objects.filter(user=self.request.user)
 
@@ -63,4 +74,6 @@ class PurchaseHistoryView(BaseAPIView, generics.ListAPIView):
 class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = PurchaseHistory.objects.all()
     serializer_class = PurchaseHistorySerializer
+    permission_classes = [IsStaffUser]
+
     

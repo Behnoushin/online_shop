@@ -39,10 +39,10 @@ class FavoritelistSerializer(BaseSerializer):
 
 class RatingSerializer(BaseSerializer):
     class Meta:
-        model:Rating
+        model = Rating
         fields = "__all__"
         
 class ReviewSerializer(BaseSerializer):
     class Meta:
-        model:Review
+        model = Review
         fields = "__all__"
