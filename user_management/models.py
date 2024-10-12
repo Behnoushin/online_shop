@@ -2,12 +2,15 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from product.models import Product
 from utility.models import BaseModel
+from utility.models import SoftDeleteManager
+
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     age = models.PositiveIntegerField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
+    objects = SoftDeleteManager()
 
     def __str__(self):
         return self.username
@@ -16,6 +19,7 @@ class UserProfile(BaseModel):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     address = models.CharField(max_length=400)
     is_deleted = models.BooleanField(default=False)
+    objects = SoftDeleteManager()
 
     def __str__(self):
         return self.user.username
@@ -26,6 +30,7 @@ class PurchaseHistory(BaseModel):
     quantity = models.PositiveIntegerField(default=1)
     purchase_date = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    objects = SoftDeleteManager()
     
     def __str__(self):
         return f"{self.user.username} - {self.product.title}"

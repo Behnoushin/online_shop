@@ -8,10 +8,7 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
-        
-    def delete(self, *args, **kwargs):
-        self.is_deleted = True
-        self.save()
 
-    def hard_delete(self, *args, **kwargs):
-        super(BaseModel, self).delete(*args, **kwargs)
+class SoftDeleteManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)

@@ -1,10 +1,12 @@
 from django.db import models
 from django.conf import settings
 from utility.models import BaseModel
+from utility.models import SoftDeleteManager
 
 class Category(BaseModel):
     name = models.CharField(max_length=200)
     is_deleted = models.BooleanField(default=False)
+    objects = SoftDeleteManager()
 
     def __str__(self):
         return self.name
@@ -16,6 +18,7 @@ class Product(BaseModel):
     price = models.DecimalField(max_digits=15, decimal_places=2)
     category = models.ForeignKey(Category, related_name="products", on_delete=models.CASCADE)
     is_deleted = models.BooleanField(default=False)
+    objects = SoftDeleteManager()
 
     def __str__(self):
         return self.title
@@ -26,6 +29,7 @@ class Cart(BaseModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True) 
     total_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     is_deleted = models.BooleanField(default=False)
+    objects = SoftDeleteManager()
 
 
 class CartProduct(BaseModel):
@@ -33,12 +37,14 @@ class CartProduct(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     is_deleted = models.BooleanField(default=False)
-    
+    objects = SoftDeleteManager()
+
 class FavoriteList(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product)
     is_deleted = models.BooleanField(default=False)
-    
+    objects = SoftDeleteManager()
+
     def __str__(self):
         return f"Favorite-list of {self.user.username}"
     
@@ -47,6 +53,7 @@ class Rating(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     score = models.PositiveIntegerField(default=0)
     is_deleted = models.BooleanField(default=False)
+    objects = SoftDeleteManager()
     
     def __str__(self):
         return f"{self.user.username}for {self.product.title} :{self.score}"
@@ -56,6 +63,7 @@ class Review(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     comment = models.TextField()
     is_deleted = models.BooleanField(default=False)
+    objects = SoftDeleteManager()
     
     def __str__(self):
         return f"{self.user.username} review for {self.product.title}"
