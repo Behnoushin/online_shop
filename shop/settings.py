@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "info",
     "product",
-    "user_management",
+    "user_management.apps.UserManagementConfig",
     "rest_framework",
     "rest_framework_simplejwt",
     "crm",
@@ -140,3 +140,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'user_management.CustomUser'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'behi@gmail.com'
+EMAIL_HOST_PASSWORD = '9876' 
