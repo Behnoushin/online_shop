@@ -1,5 +1,5 @@
 from .models import UserProfile, PurchaseHistory, CustomUser
-from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer
+from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer, OTPSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
@@ -8,6 +8,8 @@ from utility.views import BaseAPIView
 from .permissions import IsStaffUser
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+import random
 
 
 class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
@@ -27,7 +29,13 @@ class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
         user = CustomUser.objects.create_user(username=username, password=password, email=email, phone_number=phone_number, age=age)
         
         UserProfile.objects.create(user=user)
-        return Response({"message": "ثبت نام با موفقیت انجام شد"}, status=status.HTTP_201_CREATED)
+        otp_code = random.randint(1000, 9999)
+        user.otp_code = otp_code
+        user.save()
+        
+        send_mail('OTP شما', f'کد تأیید شما: {otp_code}', [user.email])
+        
+        return Response({"message": "ثبت نام با موفقیت انجام شد. کد تأیید به ایمیل شما ارسال شد."}, status=status.HTTP_201_CREATED)
 
 
 class UserLoginView(BaseAPIView, generics.GenericAPIView):
@@ -75,5 +83,27 @@ class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIVi
     queryset = PurchaseHistory.objects.all()
     serializer_class = PurchaseHistorySerializer
     permission_classes = [IsStaffUser]
-
     
+    
+class OTPValidationView(BaseAPIView, generics.GenericAPIView):
+    serializer_class = OTPSerializer
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+        otp_code = serializer.validated_data['otp_code']
+
+        try:
+            user = CustomUser.objects.get(email=email, otp_code=otp_code)
+            
+            if not user.is_active:
+                user.is_active = True
+                user.otp_code = None
+                user.save()
+                return Response({"message": "ایمیل تأیید شد و حساب کاربری فعال شد."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "کاربر قبلاً فعال شده است."}, status=status.HTTP_400_BAD_REQUEST)
+
+        except CustomUser.DoesNotExist:
+            return Response({"error": "کد تأیید یا ایمیل اشتباه است."}, status=status.HTTP_400_BAD_REQUEST)            

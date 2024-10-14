@@ -22,3 +22,11 @@ class PurchaseHistorySerializer(BaseSerializer):
     class Meta(BaseSerializer.Meta):
         model = PurchaseHistory
         fields = "__all__"
+    
+class OTPSerializer(BaseSerializer):
+    email = serializers.EmailField()
+    otp_code = serializers.IntegerField()
+
+    class Meta(BaseSerializer.Meta):
+        model = CustomUser
+        fields = ['email', 'otp_code']

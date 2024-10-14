@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UserRegistrationView, UserProfileView, PurchaseHistoryView , PurchaseHistoryDetailView
+from .views import UserRegistrationView, UserProfileView, PurchaseHistoryView , PurchaseHistoryDetailView, OTPValidationView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -9,4 +9,5 @@ urlpatterns = [
     path("profile/", UserProfileView.as_view(), name="user-profile"),
     path("purchasehistory/", PurchaseHistoryView.as_view(), name="purchase-history"),
     path("purchase-history/<int:pk>/", PurchaseHistoryDetailView.as_view(), name="purchase-history-detail"),
+    path("validate-otp/", OTPValidationView.as_view(), name="validate-otp"),
 ]

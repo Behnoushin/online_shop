@@ -90,4 +90,3 @@ class RatingView(BaseAPIView, generics.ListCreateAPIView):
 class ReviewView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    
