@@ -1,4 +1,3 @@
-from rest_framework import serializers
 from .models import AboutUs, ContactUs, FAQ
 from utility.serializers import BaseSerializer
 
