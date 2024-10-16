@@ -3,8 +3,8 @@ from .models import Product, Category, Cart, FavoriteList, Rating, Review, Coupo
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ["id", "title", "price", "category"]
-    search_fields = ["title"]
-    list_filter = ["category"]
+    search_fields = ["title", "description"]
+    list_filter = ["category", "price"]
 
 
 class CategoryAdmin(admin.ModelAdmin):

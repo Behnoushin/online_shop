@@ -8,9 +8,25 @@ from utility.views import BaseAPIView
 
 
 class ProductList(BaseAPIView, generics.ListCreateAPIView):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        title = self.request.query_params.get('title', None)
+        category = self.request.query_params.get('category', None)
+        min_price = self.request.query_params.get('min_price', None)
+        max_price = self.request.query_params.get('max_price', None)
 
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        if category:
+            queryset = queryset.filter(category__name__icontains=category)
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+
+        return queryset
 
 class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
@@ -98,3 +114,5 @@ class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
 class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
+    
+
