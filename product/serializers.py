@@ -1,5 +1,4 @@
-from rest_framework import serializers
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review
+from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon
 from utility.serializers import BaseSerializer
 
 
@@ -46,3 +45,8 @@ class ReviewSerializer(BaseSerializer):
     class Meta:
         model = Review
         fields = "__all__"
+        
+class CouponSerializer(BaseSerializer):
+    class Meta:
+        model = Coupon
+        fields = '__all__'

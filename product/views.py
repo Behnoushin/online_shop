@@ -1,5 +1,5 @@
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review
-from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer
+from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review, Coupon
+from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer, CouponSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -41,7 +41,7 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         instance.quantity = request.data.get("quantity", instance.quantity)
         instance.save()
         return Response(
-            {"message": "به روز رسانی با موفقیت انحام شد "}, status=status.HTTP_200_OK
+            {"message": "به روز رسانی با موفقیت انجام شد "}, status=status.HTTP_200_OK
         )
 
     def destroy(self, request, *args, **kwargs):
@@ -90,3 +90,11 @@ class RatingView(BaseAPIView, generics.ListCreateAPIView):
 class ReviewView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    
+class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+
+class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer

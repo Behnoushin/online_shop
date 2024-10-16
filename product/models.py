@@ -52,3 +52,12 @@ class Review(BaseModel):
     
     def __str__(self):
         return f"{self.user.username} review for {self.product.title}"
+    
+class Coupon(BaseModel):
+    code = models.CharField(max_length=15, unique=True)
+    discount = models.FloatField()
+    valid_until = models.DateTimeField()
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.code
