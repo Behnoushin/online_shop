@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "crm",
     "utility",
     "django_filters",
+    "drf_spectacular",
     #"usermanagement",
     #"products",
 ]
@@ -53,6 +54,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',    
 }
 
 
