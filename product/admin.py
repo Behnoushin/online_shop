@@ -2,10 +2,11 @@ from django.contrib import admin
 from .models import Product, Category, Cart, FavoriteList, Rating, Review, Coupon
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ["id", "title", "price", "category"]
+    list_display = ["id", "title", "price", "category", "stock"]
     search_fields = ["title", "description"]
     list_filter = ["category", "price"]
-
+    list_editable = ["stock","price"]
+    
 
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ["id", "name"]

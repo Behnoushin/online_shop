@@ -1,32 +1,19 @@
 from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review, Coupon
 from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer, CouponSerializer
+from .filters import ProductFilter
+from utility.views import BaseAPIView
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-from utility.views import BaseAPIView
-
+from django_filters.rest_framework import DjangoFilterBackend
 
 class ProductList(BaseAPIView, generics.ListCreateAPIView):
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    
-    def get_queryset(self):
-        queryset = Product.objects.all()
-        title = self.request.query_params.get('title', None)
-        category = self.request.query_params.get('category', None)
-        min_price = self.request.query_params.get('min_price', None)
-        max_price = self.request.query_params.get('max_price', None)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProductFilter
 
-        if title:
-            queryset = queryset.filter(title__icontains=title)
-        if category:
-            queryset = queryset.filter(category__name__icontains=category)
-        if min_price:
-            queryset = queryset.filter(price__gte=min_price)
-        if max_price:
-            queryset = queryset.filter(price__lte=max_price)
-
-        return queryset
 
 class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
@@ -102,10 +89,14 @@ class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
 class RatingView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product']
     
 class ReviewView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product']
     
 class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Coupon.objects.all()
