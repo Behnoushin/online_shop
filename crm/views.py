@@ -52,7 +52,10 @@ class AdminDashboardDataView(RetrieveAPIView):
 class ProductDeleteView(SoftDeleteGenericView):
     queryset = Product.objects.filter(is_deleted=False)
     serializer_class = ProductSerializer 
+    permission_classes = [IsAdminUser]
+
 
 class UserProfileDeleteView(SoftDeleteGenericView):
     queryset = CustomUser.objects.filter(is_deleted=False)
     serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]

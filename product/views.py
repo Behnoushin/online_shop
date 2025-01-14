@@ -4,38 +4,52 @@ from .filters import ProductFilter
 from utility.views import BaseAPIView
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated ,AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
+
+
 
 class ProductList(BaseAPIView, generics.ListCreateAPIView):
-    queryset = Product.objects.all()
+    
+    def get(self, request, *args, **kwargs):
+        print('8'*10)
+        return super().get(request, *args, **kwargs)
+    
+    permission_classes = [AllowAny]
+    queryset = Product.objects.annotate(average_rating=Avg('ratings__score'))
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProductFilter
 
 
 class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [AllowAny]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 
 class CategoryList(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [AllowAny]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
 class CategoryDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [AllowAny]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
 class CartView(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
 
 class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = CartProduct.objects.all()
     serializer_class = CartProductSerializer
 
@@ -56,6 +70,7 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
 
 
 class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = FavoriteList.objects.all()
     serializer_class = FavoritelistSerializer
     permission_classes = [IsAuthenticated]
@@ -76,6 +91,7 @@ class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
         return Response({"message": "محصول به لیست علاقه مندی اضافه شد"}, status=status.HTTP_201_CREATED)
         
 class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = FavoriteList.objects.all()
     serializer_class = FavoritelistSerializer
     
@@ -87,22 +103,27 @@ class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
         return Response({"message": "محصول از لیست علاقه مندی حذف شد"}, status=status.HTTP_204_NO_CONTENT)
     
 class RatingView(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['product']
     
+    
 class ReviewView(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['product']
     
 class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
 
 class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
     

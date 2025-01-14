@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Avg
 from django.conf import settings
 from utility.models import BaseModel
 
@@ -16,10 +17,9 @@ class Product(BaseModel):
     category = models.ForeignKey(Category, related_name="products", on_delete=models.CASCADE)
     stock = models.PositiveIntegerField(default=0)
 
-
     def __str__(self):
-        return self.title
-
+        return self.title + " - " + str(self.id) 
+    
 
 class Cart(BaseModel):
     products = models.ManyToManyField(Product)
@@ -63,3 +63,4 @@ class Coupon(BaseModel):
 
     def __str__(self):
         return self.code
+    

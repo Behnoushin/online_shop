@@ -1,6 +1,6 @@
 from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon
 from utility.serializers import BaseSerializer
-
+from rest_framework import serializers
 
 class CategorySerializer(BaseSerializer):
     class Meta:
@@ -10,6 +10,7 @@ class CategorySerializer(BaseSerializer):
 
 class ProductSerializer(BaseSerializer):
     category = CategorySerializer()
+    average_rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Product
