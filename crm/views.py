@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from user_management.models import CustomUser, PurchaseHistory
 from user_management.serializers import UserSerializer
 from django.db.models import Sum, Count, Avg
-from utility.mixins import SoftDeleteMixin
 from utility.views import SoftDeleteGenericView
 
 class ProductUpdate(generics.UpdateAPIView):

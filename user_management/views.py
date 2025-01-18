@@ -9,6 +9,7 @@ from .permissions import IsStaffUser
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
+from messaging.utils import get_formatted_message
 import random
 
 
@@ -33,7 +34,16 @@ class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
         user.otp_code = otp_code
         user.save()
         
-        send_mail('OTP شما', f'کد تأیید شما: {otp_code}', [user.email])
+        otp_message = get_formatted_message("otp_message", otp_code=otp_code)
+        
+        welcome_message = get_formatted_message("welcome_message", username=username)
+        
+        send_mail(
+            subject='ثبت‌نام شما با موفقیت انجام شد',
+            message=f"{welcome_message}\n\n{otp_message}",
+            from_email=None ,
+            recipient_list=[user.email]
+        )
         
         return Response({"message": "ثبت نام با موفقیت انجام شد. کد تأیید به ایمیل شما ارسال شد."}, status=status.HTTP_201_CREATED)
 

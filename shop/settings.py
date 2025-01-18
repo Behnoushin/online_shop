@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_spectacular",
     "order",
+    "messaging",
     #"usermanagement",
     #"products",
 ]
