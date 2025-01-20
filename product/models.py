@@ -48,9 +48,13 @@ class Rating(BaseModel):
         return f"{self.user.username}for {self.product.title} :{self.score}"
 
 class Review(BaseModel):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='review')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    product = models.ForeignKey('product.Product', on_delete=models.CASCADE, related_name='review')
+    user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
     comment = models.TextField()
+    rate = models.SmallIntegerField(null=True, blank=True)
+    like = models.ManyToManyField('user_management.CustomUser', blank=True, related_name='liked_reviews')
+    dislike = models.ManyToManyField('user_management.CustomUser', blank=True, related_name='disliked_reviews')
+    parent_review = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL, related_name='replies')
     
     def __str__(self):
         return f"{self.user.username} review for {self.product.title}"

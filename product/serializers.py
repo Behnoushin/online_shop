@@ -1,5 +1,6 @@
 from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon
 from utility.serializers import BaseSerializer
+from user_management.models import CustomUser
 from rest_framework import serializers
 
 class CategorySerializer(BaseSerializer):
@@ -43,6 +44,12 @@ class RatingSerializer(BaseSerializer):
         fields = "__all__"
         
 class ReviewSerializer(BaseSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all()) 
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all()) 
+    like = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True) 
+    dislike = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
+    parent_review = serializers.PrimaryKeyRelatedField(queryset=Review.objects.all(), required=False)
+    
     class Meta:
         model = Review
         fields = "__all__"

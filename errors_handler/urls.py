@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import get_exception_logs
+from .views import ExceptionLogListView
 
 urlpatterns = [
-    path('api/errors/', get_exception_logs, name='get_exception_logs'),
+    path('api/errors/', ExceptionLogListView.as_view(), name='get_exception_logs'),
 ]
