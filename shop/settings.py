@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "order",
     "messaging",
+    "errors_handler",
     #"usermanagement",
     #"products",
 ]
@@ -99,6 +100,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "errors_handler.middleware.ExceptionLoggingMiddleware",
     
 ]
 
