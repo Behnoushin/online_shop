@@ -97,6 +97,7 @@ class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIVi
     
 class OTPValidationView(BaseAPIView, generics.GenericAPIView):
     serializer_class = OTPSerializer
+    
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

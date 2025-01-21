@@ -1,4 +1,4 @@
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon
+from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon, Brand
 from utility.serializers import BaseSerializer
 from user_management.models import CustomUser
 from rest_framework import serializers
@@ -8,6 +8,10 @@ class CategorySerializer(BaseSerializer):
         model = Category
         fields = "__all__"
 
+class BrandSerializer(BaseSerializer):
+    class Meta:
+        model = Brand
+        fields = "__all__"
 
 class ProductSerializer(BaseSerializer):
     category = CategorySerializer()

@@ -13,18 +13,38 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-class UserProfile(BaseModel):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    address = models.CharField(max_length=400)
+
+class Address(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="addresses")
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100, null=True, blank=True)
+    postal_code = models.CharField(max_length=20, null=True, blank=True)
+    full_address = models.TextField(null=True, blank=True)
+    is_default = models.BooleanField(default=False)
 
     def __str__(self):
+        return f"{self.street}, {self.city} ({'Default' if self.is_default else 'Other'})"
+
+
+class UserProfile(BaseModel):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    addresses = models.ManyToManyField('Address', blank=True, related_name='user_profiles')
+    
+    def get_default_address(self):
+        return self.addresses.filter(is_default=True).first()
+    
+    def __str__(self):
         return self.user.username
+
 
 class PurchaseHistory(BaseModel):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     purchase_date = models.DateTimeField(auto_now_add=True)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="purchase_history")
+
     
     def __str__(self):
-        return f"{self.user.username} - {self.product.title}"
+        return f"{self.user.username} - {self.product.title} - {self.address.street if self.address else 'No Address'}"

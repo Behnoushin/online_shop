@@ -1,6 +1,6 @@
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review, Coupon
-from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer, CouponSerializer
-from .filters import ProductFilter
+from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review, Coupon, Brand
+from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer, CouponSerializer, BrandSerializer
+from .filters import ProductFilter, BrandFilter
 from utility.views import BaseAPIView
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -9,8 +9,31 @@ from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg
 
+class CategoryList(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 
+class CategoryDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [AllowAny]
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class BrandList(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [AllowAny]  
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BrandFilter
+    
+class BrandDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [AllowAny] 
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+
+    
 class ProductList(BaseAPIView, generics.ListCreateAPIView):
     
     def get(self, request, *args, **kwargs):
@@ -28,18 +51,6 @@ class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [AllowAny]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
-
-class CategoryList(BaseAPIView, generics.ListCreateAPIView):
-    permission_classes = [AllowAny]
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
-class CategoryDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
 
 
 class CartView(BaseAPIView, generics.ListCreateAPIView):
@@ -127,4 +138,3 @@ class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestro
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
     
-
