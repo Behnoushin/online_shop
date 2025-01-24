@@ -28,7 +28,7 @@ class FavoriteListAdmin(admin.ModelAdmin):
     search_fields = ["user__username"]
     
 class RatingAdmin(admin.ModelAdmin):
-    list_display = ["id", "user", "product", "score", "created_at"]
+    list_display = ["id", "user", "product", "score", "created_at","status"]
     search_fields =["product__title"]
     
 class ReviewAdmin(admin.ModelAdmin):

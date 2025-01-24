@@ -49,9 +49,11 @@ class FavoriteList(BaseModel):
         return f"Favorite-list of {self.user.username}"
     
 class Rating(BaseModel):
+    SCORE_CHOICES = [(i, str(i)) for i in range(6)]
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    score = models.PositiveIntegerField(default=0)
+    score = models.PositiveIntegerField(choices=SCORE_CHOICES, default=0)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved')], default='pending')
     
     def __str__(self):
         return f"{self.user.username}for {self.product.title} :{self.score}"
