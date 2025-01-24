@@ -36,8 +36,15 @@ class ReviewAdmin(admin.ModelAdmin):
     search_fields = ["product__title"]
     
 class CouponAdmin(admin.ModelAdmin):
-    list_display = ["id", "code", "discount", "valid_until"]
+    list_display = ["id", "code", "discount_value", "valid_until", "active", "is_valid_now"]
+    list_filter = ["active", "valid_until"]
     search_fields = ["code"]
+    readonly_fields = ["used_count"]
+    
+    def is_valid_now(self, obj):
+        return obj.is_valid()
+    is_valid_now.short_description = "Valid Now"
+    is_valid_now.boolean = True
     
 admin.site.register(Brand, BrandAdmin)
 admin.site.register(Category, CategoryAdmin)

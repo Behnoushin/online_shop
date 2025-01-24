@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models import Avg
 from django.conf import settings
 from utility.models import BaseModel
+from django.utils.timezone import now
+
 
 class Category(BaseModel):
     name = models.CharField(max_length=200)
@@ -72,11 +74,35 @@ class Review(BaseModel):
     
 class Coupon(BaseModel):
     code = models.CharField(max_length=15, unique=True)
-    discount = models.FloatField()
+    discount_value = models.FloatField()
+    min_purchase = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    max_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    valid_from = models.DateTimeField(default=now)
     valid_until = models.DateTimeField()
     active = models.BooleanField(default=True)
-
+    usage_limit = models.PositiveIntegerField(blank=True, null=True)
+    used_count = models.PositiveIntegerField(default=0)
+    
     def __str__(self):
         return self.code
+    
+    def is_valid(self):
+        if not self.active:
+            return False
+        if self.valid_from > now() or self.valid_until < now():
+            return False
+        if self.usage_limit is not None and self.used_count >= self.usage_limit:
+            return False
+        return True
+
+    def calculate_discount(self, total_price):
+        if not self.is_valid():
+            return 0
+        if self.min_purchase and total_price < self.min_purchase:
+            return 0
+        discount = total_price * (self.discount_value / 100) 
+        if self.max_discount:
+            discount = min(discount, self.max_discount)
+        return discount
     
     

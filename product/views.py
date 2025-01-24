@@ -132,9 +132,19 @@ class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        active = self.request.query_params.get('active')
+        if active is not None:
+            queryset = queryset.filter(active=active)
+        return queryset
 
 class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
+    
+    def perform_update(self, serializer):
+        instance = serializer.save()
     

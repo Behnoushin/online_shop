@@ -62,3 +62,14 @@ class CouponSerializer(BaseSerializer):
     class Meta:
         model = Coupon
         fields = '__all__'
+        read_only_fields = ['used_count', 'created_at']
+        
+    def validate_discount_value(self, value):
+        if value > 100:
+            raise serializers.ValidationError("Discount value cannot exceed 100%.")
+        return value
+    
+    def validate(self, data):
+        if data['valid_from'] > data['valid_until']:
+            raise serializers.ValidationError("The 'valid_from' date cannot be later than 'valid_until'.")
+        return data
