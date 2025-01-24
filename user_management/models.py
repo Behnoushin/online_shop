@@ -43,7 +43,7 @@ class PurchaseHistory(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     purchase_date = models.DateTimeField(auto_now_add=True)
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="purchase_history")
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="purchase_history", default=None)
 
     
     def __str__(self):
