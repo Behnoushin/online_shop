@@ -86,13 +86,26 @@ class PurchaseHistoryView(BaseAPIView, generics.ListAPIView):
     permission_classes = [IsStaffUser]
     
     def get_queryset(self):
-        return PurchaseHistory.objects.filter(user=self.request.user)
-
+        queryset = PurchaseHistory.objects.filter(user=self.request.user)
+        is_delivered = self.request.query_params.get("is_delivered")
+        if is_delivered is not None:
+            queryset = queryset.filter(is_delivered=is_delivered.lower() == "true")
+        return queryset
 
 class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = PurchaseHistory.objects.all()
     serializer_class = PurchaseHistorySerializer
     permission_classes = [IsStaffUser]
+    
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        if 'is_delivered' in request.data:
+            instance.is_delivered = request.data['is_delivered']
+            instance.save()
+        
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
     
     
 class OTPValidationView(BaseAPIView, generics.GenericAPIView):

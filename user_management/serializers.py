@@ -26,10 +26,14 @@ class UserSerializer(BaseSerializer):
 class PurchaseHistorySerializer(BaseSerializer):
     product = ProductSerializer()
     address = AddressSerializer()
+    total_cost = serializers.SerializerMethodField()
 
     class Meta(BaseSerializer.Meta):
         model = PurchaseHistory
         fields = "__all__"
+        
+    def get_total_cost(self, obj):
+        return obj.total_cost()
     
 class OTPSerializer(BaseSerializer):
     email = serializers.EmailField()

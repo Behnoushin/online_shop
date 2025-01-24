@@ -15,9 +15,11 @@ class UserProfileAdmin(admin.ModelAdmin):
     get_default_address.short_description = "Default Address"
 
 class PurchaseHistoryAdmin(admin.ModelAdmin):
-    list_display = ["id", "user", "product", "quantity", "purchase_date"]
-    list_filter = ["purchase_date"]
+    list_display = ["id", "user", "product", "quantity", "purchase_date", "is_delivered"]
+    list_filter = ["purchase_date", "is_delivered"]
     search_fields = ["user__username", "product__title"]
+    list_editable = ["is_delivered"]
+
 
 admin.site.register(CustomUser)
 admin.site.register(Address)

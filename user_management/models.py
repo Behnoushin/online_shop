@@ -39,12 +39,20 @@ class UserProfile(BaseModel):
 
 
 class PurchaseHistory(BaseModel):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="purchase_histories")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="purchases")
+    quantity = models.PositiveIntegerField(default=1, help_text="The number of products purchased.")
     purchase_date = models.DateTimeField(auto_now_add=True)
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="purchase_history", default=None)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="purchase_history", default=None, help_text="Address where the product will be delivered.")
+    is_delivered = models.BooleanField(default=False, help_text="Whether the product is delivered.")
 
     
+    class Meta:
+        ordering = ["-purchase_date"]
+    
     def __str__(self):
-        return f"{self.user.username} - {self.product.title} - {self.address.street if self.address else 'No Address'}"
+        return f"User: {self.user.username}, Product: {self.product.title}, Address: {self.address.street if self.address else 'No Address'}"
+    
+    def total_cost(self):
+        return self.quantity * self.product.price
+
