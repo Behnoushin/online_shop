@@ -84,7 +84,6 @@ class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = FavoriteList.objects.all()
     serializer_class = FavoritelistSerializer
-    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         return FavoriteList.objects.filter(user=self.request.user)
@@ -96,10 +95,25 @@ class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
         favorite_list, created = FavoriteList.objects.get_or_create(user=request.user)
         
         product_id = request.data.get("product_id")
-        product = Product.objects.get(id=product_id)
         
-        favorite_list.product.add(product)
-        return Response({"message": "محصول به لیست علاقه مندی اضافه شد"}, status=status.HTTP_201_CREATED)
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({"message": "محصول پیدا نشد."}, status=status.HTTP_400_BAD_REQUEST)
+        if favorite_list.has_product(product):
+            message = f"محصول '{product.name}' قبلاً در لیست علاقه‌مندی‌ها وجود داشته است."
+        else:        
+            favorite_list.add_product(product)
+            message = f"لیست علاقه‌مندی‌ها به‌روزرسانی شد و محصول '{product.name}' اضافه شد."
+            
+        return Response(
+            {
+                "message": message,
+                "product_id": product_id,
+                "favorite_list_id": favorite_list.id
+            },
+            status=status.HTTP_200_OK
+        )        
         
 class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
@@ -112,6 +126,7 @@ class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
         product = Product.objects.get(id=product_id)
         FavoriteList.product.remove(product)
         return Response({"message": "محصول از لیست علاقه مندی حذف شد"}, status=status.HTTP_204_NO_CONTENT)
+    
     
 class RatingView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -128,6 +143,7 @@ class ReviewView(BaseAPIView, generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['product']
     
+    
 class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Coupon.objects.all()
@@ -139,6 +155,7 @@ class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
         if active is not None:
             queryset = queryset.filter(active=active)
         return queryset
+
 
 class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]

@@ -46,9 +46,34 @@ class CartProduct(BaseModel):
 class FavoriteList(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product)
-    
+    product_count = models.PositiveIntegerField(default=0)
+    class Meta:
+        ordering = ['-created_at']
+        
     def __str__(self):
         return f"Favorite-list of {self.user.username}"
+    
+    def update_product_count(self):
+        self.product_count = self.products.count()
+        self.save()
+
+    def add_product(self, product):
+        if not self.products.filter(id=product.id).exists(): 
+            self.products.add(product)
+            self.update_product_count()
+
+    def remove_product(self, product):
+        if self.products.filter(id=product.id).exists(): 
+            self.products.remove(product)
+            self.update_product_count()
+
+    def clear_products(self):
+        self.products.clear()
+        self.update_product_count()
+
+    def has_product(self, product):
+        return self.products.filter(id=product.id).exists()
+
     
 class Rating(BaseModel):
     SCORE_CHOICES = [(i, str(i)) for i in range(6)]

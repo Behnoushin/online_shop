@@ -24,8 +24,9 @@ class CartAdmin(admin.ModelAdmin):
     search_fields = ["products__title"]
 
 class FavoriteListAdmin(admin.ModelAdmin):
-    list_display = ["id", "user"]
+    list_display = ["id", "user", "product_count"]
     search_fields = ["user__username"]
+    filter_horizontal = ("products",)
     
 class RatingAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "product", "score", "created_at","status"]
