@@ -11,8 +11,9 @@ class OrderItemSerializer(BaseSerializer):
         fields = "__all__"
 
 class OrderSerializer(BaseSerializer):
-    products = ProductSerializer(many=True)
-
+    items = OrderItemSerializer(many=True)  
+    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    
     class Meta(BaseSerializer.Meta):
         model = Order
         fields = "__all__"
