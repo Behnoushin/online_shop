@@ -14,7 +14,7 @@ class CustomUser(AbstractUser):
         return self.username
 
 
-class Address(models.Model):
+class Address(BaseModel):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="addresses")
     street = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
@@ -28,7 +28,7 @@ class Address(models.Model):
 
 
 class UserProfile(BaseModel):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile")
     addresses = models.ManyToManyField('Address', blank=True, related_name='user_profiles')
     
     def get_default_address(self):

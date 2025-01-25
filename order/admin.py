@@ -4,8 +4,10 @@ from .models import Order, OrderItem
 class OrderAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "total_amount", "status","address"]
     search_fields = ["user__username", "status"]
-    list_filter = ["status"]
     ordering = ["-created_at"]
+    list_filter = ["status"]
+    list_editable = ["status"]
+    read_only_fields = ["total_amount", "user", "address"]
     list_per_page = 20
     
     def get_queryset(self, request):
@@ -16,8 +18,10 @@ class OrderAdmin(admin.ModelAdmin):
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ["id", "order", "product", "quantity"]
     search_fields = ["order__id", "product__title"]
-    list_filter = ["order__status", "product"]
     ordering = ["order__id"]
+    list_filter = ["order__status", "product"]
+    list_editable = ["quantity"]
+    read_only_fields = ["order", "product"]
     list_per_page = 20
 
 admin.site.register(Order, OrderAdmin)
