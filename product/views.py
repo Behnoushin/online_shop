@@ -35,22 +35,40 @@ class BrandDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
 
     
 class ProductList(BaseAPIView, generics.ListCreateAPIView):
-    
-    def get(self, request, *args, **kwargs):
-        print('8'*10)
-        return super().get(request, *args, **kwargs)
-    
     permission_classes = [AllowAny]
-    queryset = Product.objects.annotate(average_rating=Avg('ratings__score'))
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProductFilter
+
+    def get_queryset(self):
+        queryset = Product.objects.all()
+        category_id = self.request.query_params.get('category', None)
+        brand_id = self.request.query_params.get('brand', None)
+        
+        if category_id:
+            queryset = queryset.filter(category__id=category_id)
+        if brand_id:
+            queryset = queryset.filter(brand__id=brand_id)
+            
+        return queryset
 
 
 class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [AllowAny]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    def get(self, request, *args, **kwargs):
+        product = self.get_object()
+        ratings = Rating.objects.filter(product=product)
+        reviews = Review.objects.filter(product=product)
+        average_rating = ratings.aggregate(Avg('score'))['score__avg']
+        response_data = {
+            'product': ProductSerializer(product).data,
+            'average_rating': average_rating,
+            'reviews': ReviewSerializer(reviews, many=True).data
+        }
+        return Response(response_data)
 
 
 class CartView(BaseAPIView, generics.ListCreateAPIView):
