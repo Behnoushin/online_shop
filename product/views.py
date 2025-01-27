@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated ,AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg
+from django.db.models import Avg, Sum
 
 class CategoryList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -165,3 +165,11 @@ class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestro
     def perform_update(self, serializer):
         instance = serializer.save()
     
+    
+class TopSellingProducts(BaseAPIView, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        top_selling_products = Product.objects.annotate(total_sales=Sum('orderitem__quantity'))
+        return top_selling_products.filter(total_sales__gt=0).order_by('-total_sales')[:10]

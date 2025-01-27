@@ -16,7 +16,8 @@ class BrandSerializer(BaseSerializer):
 class ProductSerializer(BaseSerializer):
     category = CategorySerializer()
     average_rating = serializers.FloatField(read_only=True)
-
+    total_sales = serializers.IntegerField(read_only=True)
+    
     class Meta:
         model = Product
         fields = "__all__"
