@@ -8,6 +8,8 @@ from rest_framework.permissions import IsAuthenticated , AllowAny, IsAdminUser, 
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Sum, Count
+from django.shortcuts import get_object_or_404
+
 
 class CategoryList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -330,3 +332,30 @@ class AnswerDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "رای منفی شما ثبت شد."}, status=status.HTTP_200_OK)
         
         return super().perform_update(serializer)
+
+class SimilarProductsView(BaseAPIView, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        product_id = self.request.query_params.get('product_id')
+
+        if product_id is None:
+            raise ValidationError({'error': 'شناسه محصول مورد نیاز است.'})
+
+        try:
+            product_id = int(product_id)
+        except ValueError:
+            raise ValidationError({'error': 'شناسه محصول نامعتبر است.'})
+
+        product = get_object_or_404(Product, id=product_id)
+
+        similar_products = (
+            Product.objects
+            .filter(category=product.category, brand=product.brand)
+            .exclude(id=product.id)
+            .annotate(avg_rating=Avg('rating__score'))
+            .order_by('-avg_rating')[:5]
+        )        
+        
+        return similar_products
