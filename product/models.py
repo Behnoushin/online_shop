@@ -138,6 +138,8 @@ class Question(BaseModel):
     is_reported = models.BooleanField(default=False)
     upvotes = models.PositiveIntegerField(default=0) 
     downvotes = models.PositiveIntegerField(default=0) 
+    best_answer = models.OneToOneField("Answer", null=True, blank=True, on_delete=models.SET_NULL, related_name="best_for_question")
+    is_best = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']

@@ -273,6 +273,11 @@ class QuestionList(BaseAPIView, generics.ListCreateAPIView):
             question = Question.objects.get(id=question_data['id'])
             question_data['upvotes'] = question.upvotes
             question_data['downvotes'] = question.downvotes
+            question_data['is_best'] = question.is_best
+            
+            if question.best_answer:
+                question_data['best_answer'] = AnswerSerializer(question.best_answer).data           
+            
         return Response(serializer.data)       
     
 
@@ -282,9 +287,21 @@ class QuestionDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = QuestionSerializer
 
     def perform_update(self, serializer):
+        question = serializer.instance
+        
         if not self.request.user.is_staff and self.request.user != serializer.instance.user:
             raise PermissionDenied("شما نمی توانید سوال شخص دیگری را ویرایش کنید.")
-        
+
+        if 'mark_best' in self.request.data:
+            if not self.request.user.is_staff:
+                raise PermissionDenied("فقط مدیران می‌توانند بهترین سوال را مشخص کنند.")
+            
+            Question.objects.all().update(is_best=False)
+            question.is_best = True
+            question.save()
+            return Response({"message": "سوال به عنوان بهترین انتخاب شد."}, status=status.HTTP_200_OK)
+
+
         if 'upvote' in self.request.data:
             serializer.instance.upvotes += 1
             serializer.instance.save()
@@ -308,7 +325,7 @@ class AnswerList(BaseAPIView, generics.ListCreateAPIView):
         return Answer.objects.filter(question_id=question_id)
     
     def perform_create(self, serializer):
-        question = self.get_object()
+        question = Question.objects.get(id=self.kwargs['question_id']) 
         answer = serializer.save(user=self.request.user, question=question)
         return Response({"message": "پاسخ شما با موفقیت ثبت شد."}, status=status.HTTP_201_CREATED)
 
@@ -318,8 +335,20 @@ class AnswerDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AnswerSerializer
 
     def perform_update(self, serializer):
+        answer = serializer.instance
+        question = answer.question
+        
         if not self.request.user.is_staff and self.request.user != serializer.instance.user:
             raise PermissionDenied("شما نمی توانید پاسخ شخص دیگری را ویرایش کنید.")
+        
+        if 'mark_best' in self.request.data:
+            question = answer.question
+            if question.user != self.request.user:
+                raise PermissionDenied("فقط نویسنده سوال می‌تواند پاسخ برتر را انتخاب کند.")
+            
+            question.best_answer = answer
+            question.save()
+            return Response({"message": "پاسخ به عنوان بهترین انتخاب شد"}, status=status.HTTP_200_OK)
         
         if 'upvote' in self.request.data:
             serializer.instance.upvotes += 1
