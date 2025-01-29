@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProductList, ProductDetail, CategoryList, CategoryDetail, CartView, CartProductsDetail, FavoriteListView, RemoveFromFavoriteList, RatingView, ReviewView,CouponListCreateView, CouponRetrieveUpdateDestroyView, BrandList, BrandDetail, TopSellingProducts
+from .views import ProductList, ProductDetail, CategoryList, CategoryDetail, CartView, CartProductsDetail, FavoriteListView, RemoveFromFavoriteList, RatingView, ReviewView,CouponListCreateView, CouponRetrieveUpdateDestroyView, ValidateCouponView , BrandList, BrandDetail, TopSellingProducts
 
 urlpatterns = [
     path("products/", ProductList.as_view(), name="product-list"),
@@ -12,10 +12,10 @@ urlpatterns = [
     path("favoritelist/remove/", RemoveFromFavoriteList.as_view(), name="favorite-list-remove"),
     path("rating/", RatingView.as_view(), name="rating-list"),
     path("review/", ReviewView.as_view(), name="review-list"),
-    path('coupons/', CouponListCreateView.as_view(), name='coupon-list-create'),
-    path('coupons/<int:pk>/', CouponRetrieveUpdateDestroyView.as_view(), name='coupon-detail'),
-    path('brands/', BrandList.as_view(), name='brand-list'),
-    path('brands/<int:pk>/', BrandDetail.as_view(), name='brand-detail'),
-    path('top-selling-products/', TopSellingProducts.as_view(), name='top_selling_products'),
-
+    path("coupons/", CouponListCreateView.as_view(), name="coupon-list-create"),
+    path("coupons/<int:pk>/", CouponRetrieveUpdateDestroyView.as_view(), name="coupon-detail"),
+    path("brands/", BrandList.as_view(), name="brand-list"),
+    path("brands/<int:pk>/", BrandDetail.as_view(), name="brand-detail"),
+    path("top-selling-products/", TopSellingProducts.as_view(), name="top_selling_products"),
+    path("validate-coupon/",ValidateCouponView.as_view(), name="validate-coupon"),
 ]

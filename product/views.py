@@ -76,7 +76,6 @@ class CartView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
-
 class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = CartProduct.objects.all()
@@ -182,7 +181,19 @@ class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestro
     
     def perform_update(self, serializer):
         instance = serializer.save()
-    
+
+class ValidateCouponView(BaseAPIView, generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CouponSerializer
+
+    def post(self, request, *args, **kwargs):
+        code = request.data.get("code")
+        try:
+            coupon = Coupon.objects.get(code=code, active=True)
+            return Response({"valid": True, "discount": coupon.discount}, status=status.HTTP_200_OK)
+        except Coupon.DoesNotExist:
+            return Response({"valid": False, "message": "کد تخفیف نامعتبر است."}, status=status.HTTP_400_BAD_REQUEST)
+
     
 class TopSellingProducts(BaseAPIView, generics.ListAPIView):
     permission_classes = [AllowAny]
