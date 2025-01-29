@@ -5,7 +5,7 @@ from utility.views import BaseAPIView
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated ,AllowAny, IsAuthenticatedOrReadOnly
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Sum, Count
 
@@ -175,6 +175,15 @@ class RatingView(BaseAPIView, generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['product']
     
+    def perform_create(self, serializer):
+        if Rating.objects.filter(user=self.request.user, product=serializer.validated_data['product']).exists():
+            raise ValidationError("شما قبلاً امتیاز داده‌اید.")
+        serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        return Response({"message": "امتیاز شما ثبت شد", "data": response.data}, status=status.HTTP_201_CREATED)   
+    
     
 class ReviewView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -182,6 +191,13 @@ class ReviewView(BaseAPIView, generics.ListCreateAPIView):
     serializer_class = ReviewSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['product']
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        return Response({"message": "نظر شما ثبت شد", "data": response.data}, status=status.HTTP_201_CREATED)    
     
     
 class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
