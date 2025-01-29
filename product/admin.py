@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db.models import Avg
-from .models import Product, Category, Cart, FavoriteList, Rating, Review, Coupon, Brand
+from .models import Product, Category, Cart, FavoriteList, Rating, Review, Coupon, Brand, Question, Answer
 
 class BrandAdmin(admin.ModelAdmin):
     list_display = ["id", "name", "country", "created_at", "updated_at"]
@@ -84,7 +84,23 @@ class CouponAdmin(admin.ModelAdmin):
     is_valid_now.short_description = "Valid Now"
     is_valid_now.boolean = True
     
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ["id", "user", "product", "text", "upvotes", "downvotes", "is_reported", "created_at", "updated_at"]
+    search_fields = ["text", "user__username", "product__name"]
+    ordering = ["created_at"]
+    list_filter = ["is_reported", "created_at"]
+    readonly_fields = ["created_at", "updated_at"]
+    list_per_page = 20
     
+
+class AnswerAdmin(admin.ModelAdmin):
+    list_display = ["id", "question", "user", "text", "is_approved", "upvotes", "downvotes", "created_at", "updated_at"]
+    search_fields = ["text", "user__username", "question__id"]
+    ordering = ["created_at"]
+    list_filter = ["is_approved", "created_at"]
+    readonly_fields = ["created_at", "updated_at"]
+    list_per_page = 20
+
 admin.site.register(Brand, BrandAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
@@ -93,3 +109,5 @@ admin.site.register(FavoriteList, FavoriteListAdmin)
 admin.site.register(Rating, RatingAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Coupon, CouponAdmin)
+admin.site.register(Question, QuestionAdmin)
+admin.site.register(Answer, AnswerAdmin)

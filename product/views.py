@@ -1,5 +1,5 @@
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review, Coupon, Brand
-from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer, CouponSerializer, BrandSerializer
+from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review, Coupon, Brand, Question, Answer
+from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer, CouponSerializer, BrandSerializer, QuestionSerializer, AnswerSerializer
 from .filters import ProductFilter, BrandFilter
 from utility.views import BaseAPIView
 from rest_framework import generics, status
@@ -130,16 +130,12 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         instance.quantity = request.data.get("quantity", instance.quantity)
         instance.save()
-        return Response(
-            {"message": "به روز رسانی با موفقیت انجام شد "}, status=status.HTTP_200_OK
-        )
+        return Response({"message": "به روز رسانی با موفقیت انجام شد "}, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
-        return Response(
-            {"message": "محصول از سبد خرید حذف شد"}, status=status.HTTP_204_NO_CONTENT
-        )
+        return Response({"message": "محصول از سبد خرید حذف شد"}, status=status.HTTP_204_NO_CONTENT)
 
 
 class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
@@ -256,3 +252,81 @@ class ValidateCouponView(BaseAPIView, generics.GenericAPIView):
             return Response({"valid": True, "discount": coupon.discount}, status=status.HTTP_200_OK)
         except Coupon.DoesNotExist:
             return Response({"valid": False, "message": "کد تخفیف نامعتبر است."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class QuestionList(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+
+    def perform_create(self, serializer):
+        question = serializer.save(user=self.request.user)
+        return Response({"message": "سوال شما با موفقیت ثبت شد."}, status=status.HTTP_201_CREATED)       
+     
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+    
+        for question_data in serializer.data:
+            question = Question.objects.get(id=question_data['id'])
+            question_data['upvotes'] = question.upvotes
+            question_data['downvotes'] = question.downvotes
+        return Response(serializer.data)       
+    
+
+class QuestionDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+
+    def perform_update(self, serializer):
+        if not self.request.user.is_staff and self.request.user != serializer.instance.user:
+            raise PermissionDenied("شما نمی توانید سوال شخص دیگری را ویرایش کنید.")
+        
+        if 'upvote' in self.request.data:
+            serializer.instance.upvotes += 1
+            serializer.instance.save()
+            return Response({"message": "رای مثبت شما ثبت شد."}, status=status.HTTP_200_OK)
+        
+        elif 'downvote' in self.request.data:
+            serializer.instance.downvotes += 1
+            serializer.instance.save()
+            return Response({"message": "رای منفی شما ثبت شد."}, status=status.HTTP_200_OK)
+        
+        return super().perform_update(serializer)
+
+
+class AnswerList(BaseAPIView, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer
+    
+    def get_queryset(self):
+        question_id = self.kwargs['question_id']
+        return Answer.objects.filter(question_id=question_id)
+    
+    def perform_create(self, serializer):
+        question = self.get_object()
+        answer = serializer.save(user=self.request.user, question=question)
+        return Response({"message": "پاسخ شما با موفقیت ثبت شد."}, status=status.HTTP_201_CREATED)
+
+class AnswerDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer
+
+    def perform_update(self, serializer):
+        if not self.request.user.is_staff and self.request.user != serializer.instance.user:
+            raise PermissionDenied("شما نمی توانید پاسخ شخص دیگری را ویرایش کنید.")
+        
+        if 'upvote' in self.request.data:
+            serializer.instance.upvotes += 1
+            serializer.instance.save()
+            return Response({"message": "رای مثبت شما ثبت شد."}, status=status.HTTP_200_OK)
+        
+        elif 'downvote' in self.request.data:
+            serializer.instance.downvotes += 1
+            serializer.instance.save()
+            return Response({"message": "رای منفی شما ثبت شد."}, status=status.HTTP_200_OK)
+        
+        return super().perform_update(serializer)

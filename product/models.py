@@ -129,3 +129,32 @@ class Coupon(BaseModel):
         if self.max_discount:
             discount = min(discount, self.max_discount)
         return discount
+
+
+class Question(BaseModel):
+    user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='questions')
+    text = models.TextField()
+    is_reported = models.BooleanField(default=False)
+    upvotes = models.PositiveIntegerField(default=0) 
+    downvotes = models.PositiveIntegerField(default=0) 
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Question {self.id} by {self.user.username} about {self.product.name}"
+
+class Answer(BaseModel):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
+    user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
+    text = models.TextField()
+    is_approved = models.BooleanField(default=False)
+    upvotes = models.PositiveIntegerField(default=0) 
+    downvotes = models.PositiveIntegerField(default=0) 
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Answer {self.id} to Question {self.question.id} by {self.user.username}"

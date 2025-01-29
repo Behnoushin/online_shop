@@ -1,4 +1,4 @@
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon, Brand
+from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon, Brand, Question, Answer
 from utility.serializers import BaseSerializer
 from user_management.models import CustomUser
 from rest_framework import serializers
@@ -8,10 +8,12 @@ class CategorySerializer(BaseSerializer):
         model = Category
         fields = "__all__"
 
+
 class BrandSerializer(BaseSerializer):
     class Meta:
         model = Brand
         fields = "__all__"
+
 
 class ProductSerializer(BaseSerializer):
     category = CategorySerializer()
@@ -36,6 +38,7 @@ class CartSerializer(BaseSerializer):
         model = Cart
         fields = "__all__"
 
+
 class FavoritelistSerializer(BaseSerializer):
     products = ProductSerializer(many=True)
 
@@ -43,10 +46,12 @@ class FavoritelistSerializer(BaseSerializer):
         model = FavoriteList
         fields = "__all__"
 
+
 class RatingSerializer(BaseSerializer):
     class Meta:
         model = Rating
         fields = "__all__"
+ 
         
 class ReviewSerializer(BaseSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all()) 
@@ -58,6 +63,7 @@ class ReviewSerializer(BaseSerializer):
     class Meta:
         model = Review
         fields = "__all__"
+        
         
 class CouponSerializer(BaseSerializer):
     class Meta:
@@ -74,3 +80,19 @@ class CouponSerializer(BaseSerializer):
         if data['valid_from'] > data['valid_until']:
             raise serializers.ValidationError("The 'valid_from' date cannot be later than 'valid_until'.")
         return data
+    
+    
+class AnswerSerializer(BaseSerializer):
+    class Meta:
+        model = Answer
+        fields = '__all__'
+           
+            
+class QuestionSerializer(BaseSerializer):
+    answers = AnswerSerializer(many=True, read_only=True)
+    upvotes = serializers.IntegerField(read_only=True)
+    downvotes = serializers.IntegerField(read_only=True)
+    class Meta:
+        model = Question
+        fields = '__all__'
+
