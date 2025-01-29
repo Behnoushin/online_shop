@@ -163,10 +163,10 @@ class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
         except Product.DoesNotExist:
             return Response({"message": "محصول پیدا نشد."}, status=status.HTTP_400_BAD_REQUEST)
         if favorite_list.has_product(product):
-            message = f"محصول '{product.name}' قبلاً در لیست علاقه‌مندی‌ها وجود داشته است."
+            message = f"محصول '{product.title}' قبلاً در لیست علاقه‌مندی‌ها وجود داشته است."
         else:        
             favorite_list.add_product(product)
-            message = f"لیست علاقه‌مندی‌ها به‌روزرسانی شد و محصول '{product.name}' اضافه شد."
+            message = f"لیست علاقه‌مندی‌ها به‌روزرسانی شد و محصول '{product.title}' اضافه شد."
             
         return Response(
             {
