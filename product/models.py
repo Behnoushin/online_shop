@@ -129,5 +129,3 @@ class Coupon(BaseModel):
         if self.max_discount:
             discount = min(discount, self.max_discount)
         return discount
-    
-    

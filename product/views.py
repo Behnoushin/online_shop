@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated ,AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Sum, Count
 
 class CategoryList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -27,7 +27,8 @@ class BrandList(BaseAPIView, generics.ListCreateAPIView):
     serializer_class = BrandSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = BrandFilter
-    
+
+
 class BrandDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [AllowAny] 
     queryset = Brand.objects.all()
@@ -71,10 +72,31 @@ class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         return Response(response_data)
 
 
+class TopSellingProducts(BaseAPIView, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        top_selling_products = Product.objects.annotate(total_sales=Sum('orderitem__quantity'))
+        return top_selling_products.filter(total_sales__gt=0).order_by('-total_sales')[:10]
+
+
+class PopularProductsView(BaseAPIView, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.annotate(
+            total_reviews=Count('review', distinct=True),
+            avg_rating=Avg('rating__score')
+        ).order_by('-total_reviews', '-avg_rating')[:10]
+
+
 class CartView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
+
 
 class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
@@ -132,6 +154,7 @@ class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
             status=status.HTTP_200_OK
         )        
         
+        
 class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = FavoriteList.objects.all()
@@ -182,6 +205,7 @@ class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestro
     def perform_update(self, serializer):
         instance = serializer.save()
 
+
 class ValidateCouponView(BaseAPIView, generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CouponSerializer
@@ -193,12 +217,3 @@ class ValidateCouponView(BaseAPIView, generics.GenericAPIView):
             return Response({"valid": True, "discount": coupon.discount}, status=status.HTTP_200_OK)
         except Coupon.DoesNotExist:
             return Response({"valid": False, "message": "کد تخفیف نامعتبر است."}, status=status.HTTP_400_BAD_REQUEST)
-
-    
-class TopSellingProducts(BaseAPIView, generics.ListAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = ProductSerializer
-
-    def get_queryset(self):
-        top_selling_products = Product.objects.annotate(total_sales=Sum('orderitem__quantity'))
-        return top_selling_products.filter(total_sales__gt=0).order_by('-total_sales')[:10]

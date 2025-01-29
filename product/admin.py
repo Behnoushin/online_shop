@@ -93,4 +93,3 @@ admin.site.register(FavoriteList, FavoriteListAdmin)
 admin.site.register(Rating, RatingAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Coupon, CouponAdmin)
-
