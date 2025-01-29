@@ -4,7 +4,7 @@ from .filters import ProductFilter, BrandFilter
 from utility.views import BaseAPIView
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated ,AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated , AllowAny, IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Sum, Count
@@ -14,12 +14,35 @@ class CategoryList(BaseAPIView, generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def get(self, request, *args, **kwargs):
+        categories = self.get_queryset()
+        serializer = self.get_serializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def post(self, request, *args, **kwargs):
+        self.permission_classes = [IsAdminUser] 
+        return super().post(request, *args, **kwargs)
+    
+    
 class CategoryDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [AllowAny]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        self.permission_classes = [IsAdminUser] 
+        return super().put(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        self.permission_classes = [IsAdminUser]  
+        return super().patch(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        self.permission_classes = [IsAdminUser]  
+        return super().delete(request, *args, **kwargs)
 
 class BrandList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [AllowAny]  
