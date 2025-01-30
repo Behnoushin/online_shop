@@ -46,6 +46,7 @@ class CategoryDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         self.permission_classes = [IsAdminUser]  
         return super().delete(request, *args, **kwargs)
 
+
 class BrandList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [AllowAny]  
     queryset = Brand.objects.all()
@@ -219,7 +220,28 @@ class ReviewView(BaseAPIView, generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         return Response({"message": "نظر شما ثبت شد", "data": response.data}, status=status.HTTP_201_CREATED)    
+
+
+class ReviewEditDelete(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
     
+    def get_object(self):
+        return get_object_or_404(Review, user=self.request.user, product=self.kwargs['product_id'])
+    
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(self.object, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "نظر شما به روز رسانی شد."}, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return Response({"message": "نظر شما حذف شد."}, status=status.HTTP_204_NO_CONTENT)
+
     
 class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -361,6 +383,7 @@ class AnswerDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "رای منفی شما ثبت شد."}, status=status.HTTP_200_OK)
         
         return super().perform_update(serializer)
+
 
 class SimilarProductsView(BaseAPIView, generics.ListAPIView):
     permission_classes = [AllowAny]
