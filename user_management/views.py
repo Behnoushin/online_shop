@@ -18,6 +18,9 @@ class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
     serializer_class = UserProfileSerializer
 
     def create(self, request, *args, **kwargs):
+        """
+        Registers a new user, creates a profile, generates an OTP, and sends a confirmation email.
+        """
         username = request.data.get("username")
         password = request.data.get("password")
         email = request.data.get("email")
@@ -52,6 +55,9 @@ class UserLoginView(BaseAPIView, generics.GenericAPIView):
     serializer_class = UserSerializer
 
     def post(self, request, *args, **kwargs):
+        """
+        Authenticates the user and returns JWT tokens if the login is successful.
+        """
         username = request.data.get("username")
         password = request.data.get("password")
 
@@ -73,6 +79,9 @@ class UserProfileView(BaseAPIView, generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
+        """
+        Returns the profile of the authenticated user.
+        """
         user = self.request.user
         if user.is_authenticated:
             return UserProfile.objects.get(user=user)
@@ -80,17 +89,20 @@ class UserProfileView(BaseAPIView, generics.RetrieveUpdateAPIView):
             raise PermissionDenied("شما باید وارد حساب خود شوید تا به پروفایل دسترسی داشته باشید.")
 
 
-
 class PurchaseHistoryView(BaseAPIView, generics.ListAPIView):
     serializer_class = PurchaseHistorySerializer
     permission_classes = [IsStaffUser]
     
     def get_queryset(self):
+        """
+        Filters purchase history based on the delivery status (if provided).
+        """
         queryset = PurchaseHistory.objects.filter(user=self.request.user)
         is_delivered = self.request.query_params.get("is_delivered")
         if is_delivered is not None:
             queryset = queryset.filter(is_delivered=is_delivered.lower() == "true")
         return queryset
+
 
 class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = PurchaseHistory.objects.all()
@@ -98,6 +110,9 @@ class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIVi
     permission_classes = [IsStaffUser]
     
     def patch(self, request, *args, **kwargs):
+        """
+        Updates the delivery status of a specific purchase history record.
+        """
         instance = self.get_object()
         
         if 'is_delivered' in request.data:
@@ -106,12 +121,16 @@ class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIVi
         
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
     
     
 class OTPValidationView(BaseAPIView, generics.GenericAPIView):
     serializer_class = OTPSerializer
     
     def post(self, request, *args, **kwargs):
+        """
+        Validates the OTP and activates the user account if the OTP is correct.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -130,4 +149,5 @@ class OTPValidationView(BaseAPIView, generics.GenericAPIView):
                 return Response({"error": "کاربر قبلاً فعال شده است."}, status=status.HTTP_400_BAD_REQUEST)
 
         except CustomUser.DoesNotExist:
-            return Response({"error": "کد تأیید یا ایمیل اشتباه است."}, status=status.HTTP_400_BAD_REQUEST)            
+            return Response({"error": "کد تأیید یا ایمیل اشتباه است."}, status=status.HTTP_400_BAD_REQUEST)
+            
