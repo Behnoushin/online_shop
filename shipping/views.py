@@ -51,9 +51,11 @@ class ShipmentView(BaseAPIView, generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         """
-        Automatically assign the logged-in user to the shipment's order.
+        Automatically assign the logged-in user to the shipment's order
+        and mark the order as shipped.
         """
-        serializer.save(order__user=self.request.user)
+        shipment = serializer.save(order__user=self.request.user)
+        shipment.order.mark_as_shipped()
 
 
     def update_shipment_status(self, pk, status):

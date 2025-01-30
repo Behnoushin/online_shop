@@ -1,7 +1,7 @@
 from django.db import models
 from product.models import Product
 from utility.models import BaseModel
-from user_management.models import CustomUser, Address, PurchaseHistory
+from user_management.models import CustomUser, Address
 
 class Order(BaseModel):
     PENDING = 'pending'

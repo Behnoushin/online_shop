@@ -26,7 +26,6 @@ class ShippingMethod(BaseModel):
         return base_cost + additional_cost
     
     
-    
 class Shipment(BaseModel):
     ORDER_STATUS_CHOICES = [
         ('in_transit', 'In Transit'),
