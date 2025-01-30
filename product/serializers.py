@@ -1,7 +1,11 @@
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon, Warranty, Brand, Question, Answer
-from utility.serializers import BaseSerializer
-from user_management.models import CustomUser
 from rest_framework import serializers
+from .models import (
+    Product, Category, Cart, CartProduct, FavoriteList, Rating, 
+    Review, Coupon, Warranty, Brand, Question, Answer
+)
+from user_management.models import CustomUser
+from utility.serializers import BaseSerializer
+
 
 class CategorySerializer(BaseSerializer):
     class Meta:
@@ -78,11 +82,17 @@ class CouponSerializer(BaseSerializer):
         read_only_fields = ['used_count', 'created_at']
         
     def validate_discount_value(self, value):
+        """
+        Ensure discount value does not exceed 100%.
+        """
         if value > 100:
             raise serializers.ValidationError("Discount value cannot exceed 100%.")
         return value
     
     def validate(self, data):
+        """
+        Ensure 'valid_from' date is earlier than 'valid_until' date.
+        """
         if data['valid_from'] > data['valid_until']:
             raise serializers.ValidationError("The 'valid_from' date cannot be later than 'valid_until'.")
         return data

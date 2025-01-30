@@ -1,6 +1,17 @@
 from django.contrib import admin
 from django.db.models import Avg
-from .models import Product, Category, Cart, FavoriteList, Rating, Review, Coupon, Warranty, Brand, Question, Answer
+from .models import (
+    Product, Category, Cart, CartProduct, FavoriteList, Rating, 
+    Review, Coupon, Warranty, Brand, Question, Answer
+)
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "created_at", "updated_at"]
+    search_fields = ["name"]
+    ordering = ["name"]
+    list_filter = ["created_at"]
+    readonly_fields = ["created_at", "updated_at"]
+    list_per_page = 20
 
 class BrandAdmin(admin.ModelAdmin):
     list_display = ["id", "name", "country", "created_at", "updated_at"]
@@ -10,6 +21,19 @@ class BrandAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at"]
     list_per_page = 20
     
+    
+class WarrantyAdmin(admin.ModelAdmin):
+    list_display = ["product", "start_date", "end_date", "status", "description"]
+    search_fields = ["product__name", "description"]
+    ordering = ["-start_date"]
+    list_filter = ["status", "start_date", "end_date"]
+    readonly_fields = ["start_date", "end_date", "status"]
+    list_per_page = 20
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.select_related("product")
+        return queryset
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ["id", "title", "price", "category", "stock", "avg_rating"]
@@ -24,15 +48,6 @@ class ProductAdmin(admin.ModelAdmin):
         avg = obj.ratings.aggregate(Avg('score'))['score__avg']
         return round(avg, 2) if avg else "No ratings yet"
     avg_rating.short_description = "Average Rating"
-
-
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ["id", "name", "created_at", "updated_at"]
-    search_fields = ["name"]
-    ordering = ["name"]
-    list_filter = ["created_at"]
-    readonly_fields = ["created_at", "updated_at"]
-    list_per_page = 20
 
 
 class CartAdmin(admin.ModelAdmin):
@@ -83,19 +98,7 @@ class CouponAdmin(admin.ModelAdmin):
         return obj.is_valid()
     is_valid_now.short_description = "Valid Now"
     is_valid_now.boolean = True
-    
-class WarrantyAdmin(admin.ModelAdmin):
-    list_display = ["product", "start_date", "end_date", "status", "description"]
-    search_fields = ["product__name", "description"]
-    ordering = ["-start_date"]
-    list_filter = ["status", "start_date", "end_date"]
-    readonly_fields = ["start_date", "end_date", "status"]
-    list_per_page = 20
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        queryset = queryset.select_related("product")
-        return queryset
     
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "product", "text", "upvotes", "downvotes", "is_reported", "created_at", "updated_at"]
@@ -114,14 +117,15 @@ class AnswerAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at"]
     list_per_page = 20
 
-admin.site.register(Brand, BrandAdmin)
+
 admin.site.register(Category, CategoryAdmin)
+admin.site.register(Brand, BrandAdmin)
+admin.site.register(Warranty, WarrantyAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Cart, CartAdmin)
 admin.site.register(FavoriteList, FavoriteListAdmin)
 admin.site.register(Rating, RatingAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Coupon, CouponAdmin)
-admin.site.register(Warranty, WarrantyAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Answer, AnswerAdmin)
