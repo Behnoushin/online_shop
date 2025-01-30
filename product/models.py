@@ -1,8 +1,10 @@
 from django.db import models
 from django.db.models import Avg
 from django.conf import settings
-from utility.models import BaseModel
 from django.utils.timezone import now
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from utility.models import BaseModel
 
 
 class Category(BaseModel):
@@ -10,6 +12,7 @@ class Category(BaseModel):
 
     def __str__(self):
         return self.name
+
 
 class Brand(BaseModel): 
     name = models.CharField(max_length=100)
@@ -20,6 +23,29 @@ class Brand(BaseModel):
         return self.name
 
 
+class Warranty(BaseModel):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='warranties')
+    start_date = models.DateField()
+    end_date = models.DateField()
+    description = models.TextField(blank=True, null=True)
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('expired', 'Expired'),
+        ('pending', 'Pending'),
+        ('canceled', 'Canceled'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+
+    def __str__(self):
+        return f"Warranty for {self.product.name} from {self.start_date} to {self.end_date}"
+
+    class Meta:
+        verbose_name = 'Warranty'
+        verbose_name_plural = 'Warranties'
+        ordering = ['-start_date']
+
+
 class Product(BaseModel):
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -27,6 +53,7 @@ class Product(BaseModel):
     category = models.ForeignKey(Category, related_name="products", on_delete=models.CASCADE)
     stock = models.PositiveIntegerField(default=0)
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True)
+    warranty = models.ForeignKey('Warranty', on_delete=models.CASCADE, related_name='products')
 
     def __str__(self):
         return self.title + " - " + str(self.id) 
@@ -42,6 +69,7 @@ class CartProduct(BaseModel):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+    
     
 class FavoriteList(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -85,6 +113,7 @@ class Rating(BaseModel):
     def __str__(self):
         return f"{self.user.username}for {self.product.title} :{self.score}"
 
+
 class Review(BaseModel):
     product = models.ForeignKey('product.Product', on_delete=models.CASCADE, related_name='review')
     user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
@@ -96,6 +125,7 @@ class Review(BaseModel):
     
     def __str__(self):
         return f"{self.user.username} review for {self.product.title}"
+    
     
 class Coupon(BaseModel):
     code = models.CharField(max_length=15, unique=True)
@@ -146,6 +176,7 @@ class Question(BaseModel):
 
     def __str__(self):
         return f"Question {self.id} by {self.user.username} about {self.product.name}"
+
 
 class Answer(BaseModel):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')

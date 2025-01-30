@@ -1,4 +1,4 @@
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon, Brand, Question, Answer
+from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review , Coupon, Warranty, Brand, Question, Answer
 from utility.serializers import BaseSerializer
 from user_management.models import CustomUser
 from rest_framework import serializers
@@ -13,6 +13,12 @@ class BrandSerializer(BaseSerializer):
     class Meta:
         model = Brand
         fields = "__all__"
+        
+        
+class WarrantySerializer(BaseSerializer):
+    class Meta:
+        model = Warranty
+        fields = '__all__'
 
 
 class ProductSerializer(BaseSerializer):
@@ -80,7 +86,7 @@ class CouponSerializer(BaseSerializer):
         if data['valid_from'] > data['valid_until']:
             raise serializers.ValidationError("The 'valid_from' date cannot be later than 'valid_until'.")
         return data
-    
+
     
 class AnswerSerializer(BaseSerializer):
     class Meta:

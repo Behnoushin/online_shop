@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db.models import Avg
-from .models import Product, Category, Cart, FavoriteList, Rating, Review, Coupon, Brand, Question, Answer
+from .models import Product, Category, Cart, FavoriteList, Rating, Review, Coupon, Warranty, Brand, Question, Answer
 
 class BrandAdmin(admin.ModelAdmin):
     list_display = ["id", "name", "country", "created_at", "updated_at"]
@@ -84,6 +84,19 @@ class CouponAdmin(admin.ModelAdmin):
     is_valid_now.short_description = "Valid Now"
     is_valid_now.boolean = True
     
+class WarrantyAdmin(admin.ModelAdmin):
+    list_display = ["product", "start_date", "end_date", "status", "description"]
+    search_fields = ["product__name", "description"]
+    ordering = ["-start_date"]
+    list_filter = ["status", "start_date", "end_date"]
+    readonly_fields = ["start_date", "end_date", "status"]
+    list_per_page = 20
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.select_related("product")
+        return queryset
+    
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "product", "text", "upvotes", "downvotes", "is_reported", "created_at", "updated_at"]
     search_fields = ["text", "user__username", "product__name"]
@@ -109,5 +122,6 @@ admin.site.register(FavoriteList, FavoriteListAdmin)
 admin.site.register(Rating, RatingAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Coupon, CouponAdmin)
+admin.site.register(Warranty, WarrantyAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Answer, AnswerAdmin)

@@ -1,5 +1,5 @@
-from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review, Coupon, Brand, Question, Answer
-from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer, CouponSerializer, BrandSerializer, QuestionSerializer, AnswerSerializer
+from .models import Product, Category, Cart, CartProduct, FavoriteList, Rating, Review, Coupon, Warranty, Brand, Question, Answer
+from .serializers import ProductSerializer, CategorySerializer, CartSerializer, CartProductSerializer, FavoritelistSerializer, RatingSerializer, ReviewSerializer, CouponSerializer, WarrantySerializer, BrandSerializer, QuestionSerializer, AnswerSerializer
 from .filters import ProductFilter, BrandFilter
 from utility.views import BaseAPIView
 from rest_framework import generics, status
@@ -9,7 +9,11 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Sum, Count
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
+# -----------------------------------------------------------------------------
+# Category Views
+# -----------------------------------------------------------------------------
 
 class CategoryList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -46,6 +50,9 @@ class CategoryDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         self.permission_classes = [IsAdminUser]  
         return super().delete(request, *args, **kwargs)
 
+# -----------------------------------------------------------------------------
+# Brand Views
+# -----------------------------------------------------------------------------
 
 class BrandList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [AllowAny]  
@@ -60,6 +67,71 @@ class BrandDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = Brand.objects.all()
     serializer_class = BrandSerializer
 
+# -----------------------------------------------------------------------------
+# Warranty Views
+# -----------------------------------------------------------------------------
+
+class WarrantyList(BaseAPIView, generics.ListCreateAPIView):
+    queryset = Warranty.objects.all()
+    serializer_class = WarrantySerializer
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class WarrantyDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    queryset = Warranty.objects.all()
+    serializer_class = WarrantySerializer
+
+    def get_warranty_status(self, warranty):
+        if warranty.end_date < timezone.now().date():
+            return "منقضی شده"
+        else:
+            return "فعال"
+
+    def get(self, request, *args, **kwargs):
+        product_id = kwargs.get('product_id')
+        try:
+            warranty = Warranty.objects.get(product_id=product_id)
+        except Warranty.DoesNotExist:
+            return Response({"message": "این محصول گارانتی ندارد."}, status=status.HTTP_404_NOT_FOUND)
+        
+        status = self.get_warranty_status(warranty)
+        data = {
+            'product': warranty.product.name,
+            'guarantee_duration': f"{warranty.start_date} تا {warranty.end_date}",
+            'status': status,
+            'remaining_time': str(warranty.end_date - timezone.now().date()) if status == 'فعال' else '0',
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+    def put(self, request, *args, **kwargs):
+        """آپدیت گارانتی"""
+        product_id = kwargs.get('product_id')
+        try:
+            warranty = Warranty.objects.get(product_id=product_id)
+        except Warranty.DoesNotExist:
+            return Response({"message": "این محصول گارانتی ندارد."}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data
+        warranty.start_date = data.get('start_date', warranty.start_date)
+        warranty.end_date = data.get('end_date', warranty.end_date)
+        warranty.save()
+        return Response({"message": "گارانتی با موفقیت آپدیت شد."}, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        product_id = kwargs.get('product_id')
+        try:
+            warranty = Warranty.objects.get(product_id=product_id)
+        except Warranty.DoesNotExist:
+            return Response({"message": "این محصول گارانتی ندارد."}, status=status.HTTP_404_NOT_FOUND)
+
+        warranty.delete()
+        return Response({"message": "گارانتی با موفقیت حذف شد."}, status=status.HTTP_204_NO_CONTENT)
+
+
+# -----------------------------------------------------------------------------
+# Product Views
+# -----------------------------------------------------------------------------
     
 class ProductList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -106,7 +178,6 @@ class TopSellingProducts(BaseAPIView, generics.ListAPIView):
         top_selling_products = Product.objects.annotate(total_sales=Sum('orderitem__quantity'))
         return top_selling_products.filter(total_sales__gt=0).order_by('-total_sales')[:10]
 
-
 class PopularProductsView(BaseAPIView, generics.ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = ProductSerializer
@@ -117,6 +188,37 @@ class PopularProductsView(BaseAPIView, generics.ListAPIView):
             avg_rating=Avg('rating__score')
         ).order_by('-total_reviews', '-avg_rating')[:10]
 
+
+class SimilarProductsView(BaseAPIView, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        product_id = self.request.query_params.get('product_id')
+
+        if product_id is None:
+            raise ValidationError({'error': 'شناسه محصول مورد نیاز است.'})
+
+        try:
+            product_id = int(product_id)
+        except ValueError:
+            raise ValidationError({'error': 'شناسه محصول نامعتبر است.'})
+
+        product = get_object_or_404(Product, id=product_id)
+
+        similar_products = (
+            Product.objects
+            .filter(category=product.category, brand=product.brand)
+            .exclude(id=product.id)
+            .annotate(avg_rating=Avg('rating__score'))
+            .order_by('-avg_rating')[:5]
+        )        
+        
+        return similar_products
+
+# -----------------------------------------------------------------------------
+# Cart Views
+# -----------------------------------------------------------------------------
 
 class CartView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -140,6 +242,9 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         instance.delete()
         return Response({"message": "محصول از سبد خرید حذف شد"}, status=status.HTTP_204_NO_CONTENT)
 
+# -----------------------------------------------------------------------------
+# Favorite List Views
+# -----------------------------------------------------------------------------
 
 class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -189,6 +294,9 @@ class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
         FavoriteList.product.remove(product)
         return Response({"message": "محصول از لیست علاقه مندی حذف شد"}, status=status.HTTP_204_NO_CONTENT)
     
+# -----------------------------------------------------------------------------
+# Review and Rating Views
+# -----------------------------------------------------------------------------
     
 class RatingView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -242,6 +350,9 @@ class ReviewEditDelete(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         self.object.delete()
         return Response({"message": "نظر شما حذف شد."}, status=status.HTTP_204_NO_CONTENT)
 
+# -----------------------------------------------------------------------------
+# Coupon Views
+# -----------------------------------------------------------------------------
     
 class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAdminUser]  
@@ -274,7 +385,6 @@ class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestro
         return Response({"message": "کوپن با موفقیت حذف شد."}, status=status.HTTP_204_NO_CONTENT)
 
 
-
 class ValidateCouponView(BaseAPIView, generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CouponSerializer
@@ -298,6 +408,9 @@ class ValidateCouponView(BaseAPIView, generics.GenericAPIView):
         except Coupon.DoesNotExist:
             return Response({"valid": False, "message": "کد تخفیف نامعتبر است."}, status=status.HTTP_400_BAD_REQUEST)
 
+# -----------------------------------------------------------------------------
+# Question and Answer Views
+# -----------------------------------------------------------------------------
 
 class QuestionList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -404,31 +517,4 @@ class AnswerDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "رای منفی شما ثبت شد."}, status=status.HTTP_200_OK)
         
         return super().perform_update(serializer)
-
-
-class SimilarProductsView(BaseAPIView, generics.ListAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = ProductSerializer
-
-    def get_queryset(self):
-        product_id = self.request.query_params.get('product_id')
-
-        if product_id is None:
-            raise ValidationError({'error': 'شناسه محصول مورد نیاز است.'})
-
-        try:
-            product_id = int(product_id)
-        except ValueError:
-            raise ValidationError({'error': 'شناسه محصول نامعتبر است.'})
-
-        product = get_object_or_404(Product, id=product_id)
-
-        similar_products = (
-            Product.objects
-            .filter(category=product.category, brand=product.brand)
-            .exclude(id=product.id)
-            .annotate(avg_rating=Avg('rating__score'))
-            .order_by('-avg_rating')[:5]
-        )        
-        
-        return similar_products
+    
