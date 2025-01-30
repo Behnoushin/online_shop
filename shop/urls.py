@@ -31,4 +31,5 @@ path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagg
 path("order/", include('order.urls')),
 path('message/', include('messaging.urls')),
 path('errors/', include('errors_handler.urls')),
+path('api/shipping/', include('shipping.urls')),
 ]
