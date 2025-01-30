@@ -4,7 +4,7 @@ from .filters import ProductFilter, BrandFilter
 from utility.views import BaseAPIView
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated , AllowAny, IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated , AllowAny, IsAdminUser, IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Sum, Count
@@ -244,7 +244,7 @@ class ReviewEditDelete(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
 
     
 class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]  
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
     
@@ -255,14 +255,24 @@ class CouponListCreateView(BaseAPIView, generics.ListCreateAPIView):
             queryset = queryset.filter(active=active)
         return queryset
 
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        return Response({"message": "کوپن جدید با موفقیت ایجاد شد.", "coupon": CouponSerializer(instance).data}, status=status.HTTP_201_CREATED)
+
 
 class CouponRetrieveUpdateDestroyView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser] 
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
     
     def perform_update(self, serializer):
         instance = serializer.save()
+        return Response({"message": "کوپن با موفقیت به‌روزرسانی شد.", "coupon": CouponSerializer(instance).data}, status=status.HTTP_200_OK)
+    
+    def perform_destroy(self, instance):
+        instance.delete()
+        return Response({"message": "کوپن با موفقیت حذف شد."}, status=status.HTTP_204_NO_CONTENT)
+
 
 
 class ValidateCouponView(BaseAPIView, generics.GenericAPIView):
@@ -272,8 +282,19 @@ class ValidateCouponView(BaseAPIView, generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         code = request.data.get("code")
         try:
-            coupon = Coupon.objects.get(code=code, active=True)
+            coupon = Coupon.objects.get(code=code)
+
+            if not coupon.active:
+                return Response({"valid": False, "message": "کد تخفیف غیر فعال است."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if coupon.used_by:
+                return Response({"valid": False, "message": "کد تخفیف قبلاً استفاده شده است."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not coupon.is_admin_only and request.user.is_authenticated:
+                return Response({"valid": False, "message": "ثبت کد تخفیف صرفاً از طرف ادمین امکان‌پذیر است."}, status=status.HTTP_400_BAD_REQUEST)
+
             return Response({"valid": True, "discount": coupon.discount}, status=status.HTTP_200_OK)
+
         except Coupon.DoesNotExist:
             return Response({"valid": False, "message": "کد تخفیف نامعتبر است."}, status=status.HTTP_400_BAD_REQUEST)
 
