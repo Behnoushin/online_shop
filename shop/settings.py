@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "order",
     "messaging",
     "errors_handler",
+    "shipping",
     #"usermanagement",
     #"products",
 ]
