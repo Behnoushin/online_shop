@@ -22,10 +22,14 @@ class Brand(BaseModel):
     name = models.CharField(max_length=100)
     image = models.CharField(max_length=25000, null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
+    popularity = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
 
+# -----------------------------------------------------------------------------
+# Warranty Model
+# -----------------------------------------------------------------------------
 
 class Warranty(BaseModel):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='warranties')

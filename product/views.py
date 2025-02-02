@@ -154,6 +154,71 @@ class BrandDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
             return Response({'detail': 'شما اجازه دسترسی به این عمل را ندارید.'}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             return Response({'detail': f"خطا در حذف برند: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductsByBrand(BaseAPIView, generics.ListAPIView):
+    """
+    API view to list all products belonging to a specific brand.
+    """
+    permission_classes = [AllowAny]
+    serializer_class = ProductSerializer
+    
+    def get_queryset(self):
+        """
+        Returns products filtered by the given brand ID.
+        """
+        brand_id = self.kwargs['pk']
+        return Product.objects.filter(brand_id=brand_id) 
+    
+    
+class FollowBrand(BaseAPIView, generics.ListAPIView):
+    """
+    API view to allow authenticated users to follow or unfollow a brand.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        """
+        Allows a user to follow a brand.
+        """
+        brand_id = self.kwargs['pk']
+        brand = Brand.objects.get(id=brand_id)
+        user = request.user
+        
+        if brand.followers.filter(id=user.id).exists():
+            return Response({'detail': 'شما قبلاً این برند را دنبال کرده‌اید.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        brand.followers.add(user)
+        return Response({'detail': 'شما برند را با موفقیت دنبال کردید.'})
+    
+    def delete(self, request, *args, **kwargs):
+        """
+        Allows a user to unfollow a brand.
+        """
+        brand_id = self.kwargs['pk']
+        brand = Brand.objects.get(id=brand_id)
+        user = request.user
+        
+        if not brand.followers.filter(id=user.id).exists():
+            return Response({'detail': 'شما این برند را دنبال نکرده‌اید.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        brand.followers.remove(user)
+        return Response({'detail': 'شما برند را از لیست دنبال‌های خود حذف کردید.'})
+    
+    
+class PopularBrandList(BaseAPIView, generics.ListAPIView):
+    """
+    API view to list the most popular brands.
+    Popularity is determined based on the chosen method (static field, followers, or views).
+    """
+    permission_classes = [AllowAny]
+    serializer_class = BrandSerializer
+    
+    def get_queryset(self):
+        """
+        Returns the top 10 most popular brands based on the selected popularity method.
+        """
+        return Brand.objects.order_by('-popularity')[:10]
         
 # -----------------------------------------------------------------------------
 # Warranty Views

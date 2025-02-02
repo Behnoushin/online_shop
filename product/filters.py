@@ -38,6 +38,7 @@ class ProductFilter(filters.FilterSet):
             return queryset.filter(category=category)
         return queryset
 
+
 class BrandFilter(filters.FilterSet):
     name = filters.CharFilter(field_name="name", lookup_expr="icontains")  
     country = filters.CharFilter(field_name="country", lookup_expr="icontains") 
