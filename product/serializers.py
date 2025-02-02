@@ -23,7 +23,7 @@ class BrandSerializer(BaseSerializer):
 class WarrantySerializer(BaseSerializer):
     class Meta:
         model = Warranty
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ProductSerializer(BaseSerializer):
@@ -79,7 +79,7 @@ class ReviewSerializer(BaseSerializer):
 class CouponSerializer(BaseSerializer):
     class Meta:
         model = Coupon
-        fields = '__all__'
+        fields = "__all__"
         read_only_fields = ['used_count', 'created_at']
         
     def validate_discount_value(self, value):
@@ -102,7 +102,7 @@ class CouponSerializer(BaseSerializer):
 class AnswerSerializer(BaseSerializer):
     class Meta:
         model = Answer
-        fields = '__all__'
+        fields = "__all__"
            
             
 class QuestionSerializer(BaseSerializer):
@@ -113,7 +113,7 @@ class QuestionSerializer(BaseSerializer):
 
     class Meta:
         model = Question
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CommentSerializer(BaseSerializer):
@@ -121,11 +121,11 @@ class CommentSerializer(BaseSerializer):
 
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = "__all__"
         
 
 class ReportSerializer(BaseSerializer):
     class Meta:
         model = Report
-        fields = '__all__'
+        fields = "__all__"
 

@@ -254,6 +254,7 @@ class ProductList(BaseAPIView, generics.ListCreateAPIView):
         
         if category_id:
             queryset = queryset.filter(category__id=category_id)
+            
         if brand_id:
             queryset = queryset.filter(brand__id=brand_id)
             
@@ -281,6 +282,7 @@ class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
             'reviews': ReviewSerializer(reviews, many=True).data,
             'share_link': share_link
         }
+        
         return Response(response_data)
 
 
