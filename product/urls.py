@@ -5,7 +5,8 @@ from .views import (
     FavoriteListView, RemoveFromFavoriteList, RatingView, ReviewView, 
     CouponListCreateView, CouponRetrieveUpdateDestroyView, ValidateCouponView, 
     WarrantyList, WarrantyDetail, BrandList, BrandDetail, 
-    QuestionList, QuestionDetail, AnswerList, AnswerDetail, SimilarProductsView
+    QuestionList, QuestionDetail, AnswerList, AnswerDetail, SimilarProductsView,
+    CommentList, ReportList
 )
 
 urlpatterns = [
@@ -49,7 +50,9 @@ urlpatterns = [
     # Question and Answer URLs
     path("questions/", QuestionList.as_view(), name="question-list"),
     path("questions/<int:pk>/", QuestionDetail.as_view(), name="question-detail"),
-    path("answers/", AnswerList.as_view(), name="answer-list"),
+    path("questions/<int:question_id>/answers/", AnswerList.as_view(), name="answer-list"),
+    path("answers/<int:answer_id>/comments/", CommentList.as_view(), name="comment-list"),
+    path("reports/", ReportList.as_view(), name="report-list"),
     path("answers/<int:pk>/", AnswerDetail.as_view(), name="answer-detail"),
 
 ]

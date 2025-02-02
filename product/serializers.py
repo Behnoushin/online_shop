@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import (
     Product, Category, Cart, CartProduct, FavoriteList, Rating, 
-    Review, Coupon, Warranty, Brand, Question, Answer
+    Review, Coupon, Warranty, Brand, Question, Answer, Comment,
+    Report,
 )
 from user_management.models import CustomUser
 from utility.serializers import BaseSerializer
@@ -108,7 +109,23 @@ class QuestionSerializer(BaseSerializer):
     answers = AnswerSerializer(many=True, read_only=True)
     upvotes = serializers.IntegerField(read_only=True)
     downvotes = serializers.IntegerField(read_only=True)
+    best_answer = AnswerSerializer(read_only=True)
+
     class Meta:
         model = Question
+        fields = '__all__'
+
+
+class CommentSerializer(BaseSerializer):
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+        
+
+class ReportSerializer(BaseSerializer):
+    class Meta:
+        model = Report
         fields = '__all__'
 

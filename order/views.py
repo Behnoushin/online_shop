@@ -92,5 +92,3 @@ class OrderItemView(BaseAPIView, generics.ListCreateAPIView):
             "message": "Order item successfully created",
             "order_item": response.data
         }, status=status.HTTP_201_CREATED)
-
-

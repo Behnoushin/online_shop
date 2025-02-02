@@ -3,7 +3,6 @@ from django.db.models import Avg
 from django.conf import settings
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from utility.models import BaseModel
 
 
@@ -57,6 +56,7 @@ class Product(BaseModel):
 
     def __str__(self):
         return self.title + " - " + str(self.id) 
+    
     
 
 class Cart(BaseModel):
@@ -163,13 +163,15 @@ class Coupon(BaseModel):
 
 class Question(BaseModel):
     user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='questions')
+    title = models.CharField(max_length=255)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField()
     is_reported = models.BooleanField(default=False)
     upvotes = models.PositiveIntegerField(default=0) 
     downvotes = models.PositiveIntegerField(default=0) 
     best_answer = models.OneToOneField("Answer", null=True, blank=True, on_delete=models.SET_NULL, related_name="best_for_question")
     is_best = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=False) 
 
     class Meta:
         ordering = ['-created_at']
@@ -182,7 +184,7 @@ class Answer(BaseModel):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
     user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
     text = models.TextField()
-    is_approved = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=False) 
     upvotes = models.PositiveIntegerField(default=0) 
     downvotes = models.PositiveIntegerField(default=0) 
 
@@ -191,3 +193,23 @@ class Answer(BaseModel):
 
     def __str__(self):
         return f"Answer {self.id} to Question {self.question.id} by {self.user.username}"
+    
+    
+class Comment(BaseModel):
+    answer = models.ForeignKey('Answer', on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment {self.id} on Answer {self.answer.id} by {self.user.username}"
+
+
+class Report(BaseModel):
+    reported_by = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
+    content_type = models.CharField(max_length=50) 
+    object_id = models.PositiveIntegerField()
+    reason = models.TextField()
+
+    def __str__(self):
+        return f"Report {self.id} by {self.reported_by.username} on {self.content_type} {self.object_id}"
