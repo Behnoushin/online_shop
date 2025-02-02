@@ -122,9 +122,36 @@ class FavoriteList(BaseModel):
 
     def has_product(self, product):
         return self.products.filter(id=product.id).exists()
+    
+# -----------------------------------------------------------------------------
+# Rating and Review Model for Brand
+# -----------------------------------------------------------------------------
+
+class RatingBrand(BaseModel):
+    SCORE_CHOICES = [(i, str(i)) for i in range(6)]
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='ratings')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    score = models.PositiveIntegerField(choices=SCORE_CHOICES, default=0)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved')], default='pending')
+
+    def __str__(self):
+        return f"{self.user.username} for {self.brand.name} : {self.score}"
+
+
+class ReviewBrand(BaseModel):
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    comment = models.TextField()
+    rate = models.SmallIntegerField(null=True, blank=True)
+    like = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='liked_brand_reviews')
+    dislike = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='disliked_brand_reviews')
+    parent_review = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL, related_name='replies')
+
+    def __str__(self):
+        return f"{self.user.username} review for {self.brand.name}"
 
 # -----------------------------------------------------------------------------
-# Rating and Review Model
+# Rating and Review Model for Products
 # -----------------------------------------------------------------------------    
   
 class Rating(BaseModel):

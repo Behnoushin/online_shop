@@ -1,14 +1,15 @@
 from .models import (
     Product, Category, Cart, CartProduct, FavoriteList, Rating, 
     Review, Coupon, Warranty, Brand, Question, Answer, Comment,
-    Report,
+    Report, RatingBrand, ReviewBrand,
 )
 from .serializers import (
     ProductSerializer, CategorySerializer, CartSerializer, 
     CartProductSerializer, FavoritelistSerializer, RatingSerializer, 
     ReviewSerializer, CouponSerializer, WarrantySerializer, 
     BrandSerializer, QuestionSerializer, AnswerSerializer,
-    CommentSerializer, ReportSerializer,
+    CommentSerializer, ReportSerializer, RatingBrandSerializer,
+    ReviewBrandSerializer,
 )
 from .filters import ProductFilter, BrandFilter
 from utility.views import BaseAPIView
@@ -219,7 +220,7 @@ class PopularBrandList(BaseAPIView, generics.ListAPIView):
         Returns the top 10 most popular brands based on the selected popularity method.
         """
         return Brand.objects.order_by('-popularity')[:10]
-        
+      
 # -----------------------------------------------------------------------------
 # Warranty Views
 # -----------------------------------------------------------------------------
@@ -583,9 +584,141 @@ class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
         
         message = f"محصول '{product.title}' در لیست علاقه‌مندی‌ها وجود ندارد."
         return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
-    
+  
 # -----------------------------------------------------------------------------
-# Rating and Review Views
+# Rating and Review Views for Brands
+# -----------------------------------------------------------------------------
+
+class RatingBrandListCreateView(BaseAPIView, generics.ListCreateAPIView):
+    """
+    List and create ratings for brands.
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = RatingBrand.objects.all()
+    serializer_class = RatingBrandSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['brand']
+
+
+    def perform_create(self, serializer):
+        """
+        Create a rating if the user has not already rated the brand.
+        """
+        brand = serializer.validated_data['brand']
+        if RatingBrand.objects.filter(user=self.request.user, brand=brand).exists():
+            raise ValidationError(f"شما قبلاً به برند {brand.name} امتیاز داده‌اید.")
+        serializer.save(user=self.request.user)
+
+
+    def create(self, request, *args, **kwargs):
+        """
+        Save the rating and return a success message.
+        """
+        response = super().create(request, *args, **kwargs)
+        brand_name = response.data["brand"]
+        return Response({"message": f"امتیاز شما برای برند {brand_name} ثبت شد", "data": response.data}, status=status.HTTP_201_CREATED)
+
+
+class RatingBrandEditDeleteView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete the user's rating for a brand.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = RatingBrandSerializer
+
+
+    def get_object(self):
+        """
+        Retrieve the user's rating for the specified brand.
+        """
+        return get_object_or_404(RatingBrand, user=self.request.user, brand=self.kwargs['brand_id'])
+
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update the user's rating for the specified brand.
+        """
+        self.object = self.get_object()
+        serializer = self.get_serializer(self.object, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": f"امتیاز شما برای برند {self.object.brand.name} بروزرسانی شد"}, status=status.HTTP_200_OK)
+
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Delete the user's rating for the specified brand.
+        """
+        self.object = self.get_object()
+        brand_name = self.object.brand.name
+        self.object.delete()
+        return Response({"message": f"امتیاز شما برای برند {brand_name} حذف شد"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class ReviewBrandListCreateView(BaseAPIView, generics.ListCreateAPIView):
+    """
+    List and create reviews for brands.
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = ReviewBrand.objects.all()
+    serializer_class = ReviewBrandSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['brand']
+
+
+    def perform_create(self, serializer):
+        """
+        Save the review if the user is authenticated.
+        """
+        serializer.save(user=self.request.user)
+
+
+    def create(self, request, *args, **kwargs):
+        """
+        Save the review and return a success message.
+        """
+        response = super().create(request, *args, **kwargs)
+        brand_name = response.data["brand"]
+        return Response({"message": f"نظر شما برای برند {brand_name} ثبت شد", "data": response.data}, status=status.HTTP_201_CREATED)
+
+
+class ReviewBrandEditDeleteView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete the user's review for a brand.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReviewBrandSerializer
+
+
+    def get_object(self):
+        """
+        Retrieve the user's review for the specified brand.
+        """
+        return get_object_or_404(ReviewBrand, user=self.request.user, brand=self.kwargs['brand_id'])
+
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update the user's review for the specified brand.
+        """
+        self.object = self.get_object()
+        serializer = self.get_serializer(self.object, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": f"نظر شما برای برند {self.object.brand.name} بروزرسانی شد"}, status=status.HTTP_200_OK)
+
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Delete the user's review for the specified brand.
+        """
+        self.object = self.get_object()
+        brand_name = self.object.brand.name
+        self.object.delete()
+        return Response({"message": f"نظر شما برای برند {brand_name} حذف شد"}, status=status.HTTP_204_NO_CONTENT)
+
+# -----------------------------------------------------------------------------
+# Rating and Review Views for Products
 # -----------------------------------------------------------------------------
     
 class RatingView(BaseAPIView, generics.ListCreateAPIView):

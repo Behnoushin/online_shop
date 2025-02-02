@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (
     Product, Category, Cart, CartProduct, FavoriteList, Rating, 
     Review, Coupon, Warranty, Brand, Question, Answer, Comment,
-    Report,
+    Report, RatingBrand, ReviewBrand,
 )
 from user_management.models import CustomUser
 from utility.serializers import BaseSerializer
@@ -56,6 +56,20 @@ class FavoritelistSerializer(BaseSerializer):
     class Meta:
         model = FavoriteList
         fields = "__all__"
+        
+class RatingBrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RatingBrand
+        fields = "__all__"
+        read_only_fields = ['user', 'status']
+
+
+class ReviewBrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReviewBrand
+        fields = "__all__"
+        read_only_fields = ['user', 'like', 'dislike']
+
 
 
 class RatingSerializer(BaseSerializer):

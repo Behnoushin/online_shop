@@ -4,9 +4,11 @@ from .views import (
     CategoryList, CategoryDetail, CartView, CartProductsDetail, 
     FavoriteListView, RemoveFromFavoriteList, RatingView, ReviewView, 
     CouponListCreateView, CouponRetrieveUpdateDestroyView, ValidateCouponView, 
-    WarrantyList, WarrantyDetail, BrandList, BrandDetail, 
+    WarrantyList, WarrantyDetail, BrandList, BrandDetail, ReviewEditDelete,
     QuestionList, QuestionDetail, AnswerList, AnswerDetail, SimilarProductsView,
-    CommentList, ReportList
+    CommentList, ReportList, ProductsByBrand, FollowBrand, PopularBrandList, 
+    RatingBrandListCreateView, RatingBrandEditDeleteView,
+    ReviewBrandListCreateView, ReviewBrandEditDeleteView, 
 )
 
 urlpatterns = [
@@ -18,6 +20,9 @@ urlpatterns = [
     # Brand URLs
     path("brands/", BrandList.as_view(), name="brand-list"),
     path("brands/<int:pk>/", BrandDetail.as_view(), name="brand-detail"),
+    path("products/by-brand/<int:pk>/", ProductsByBrand.as_view(), name="products-by-brand"),
+    path("follow/brand/<int:pk>/", FollowBrand.as_view(), name="follow-brand"),
+    path("popular-brands/", PopularBrandList.as_view(), name="popular-brands"),
     
     # Warranty URLs
     path("warranties/", WarrantyList.as_view(), name="warranty-list"),
@@ -37,10 +42,17 @@ urlpatterns = [
     # Favorite List URLs
     path("favoritelist/", FavoriteListView.as_view(), name="favorite-list"),
     path("favoritelist/remove/", RemoveFromFavoriteList.as_view(), name="favorite-list-remove"),
+    
+    # Rating and Review for Brand URLs
+    path("rating/brand/", RatingBrandListCreateView.as_view(), name="brand-rating-list-create"),
+    path("rating/brand/<int:brand_id>/", RatingBrandEditDeleteView.as_view(), name="brand-rating-edit-delete"),
+    path("review/brand/", ReviewBrandListCreateView.as_view(), name="brand-review-list-create"),
+    path("review/brand/<int:brand_id>/", ReviewBrandEditDeleteView.as_view(), name="brand-review-edit-delete"),
 
-    # Rating and Review URLs
+    # Rating and Review for Product URLs
     path("rating/", RatingView.as_view(), name="rating-list"),
     path("review/", ReviewView.as_view(), name="review-list"),
+    path("review/<int:product_id>/", ReviewEditDelete.as_view(), name="review-edit-delete"),
 
     # Coupon URLs
     path("coupons/", CouponListCreateView.as_view(), name="coupon-list-create"),
@@ -52,7 +64,7 @@ urlpatterns = [
     path("questions/<int:pk>/", QuestionDetail.as_view(), name="question-detail"),
     path("questions/<int:question_id>/answers/", AnswerList.as_view(), name="answer-list"),
     path("answers/<int:answer_id>/comments/", CommentList.as_view(), name="comment-list"),
-    path("reports/", ReportList.as_view(), name="report-list"),
     path("answers/<int:pk>/", AnswerDetail.as_view(), name="answer-detail"),
+    path("reports/", ReportList.as_view(), name="report-list"),
 
 ]
