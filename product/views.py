@@ -394,19 +394,27 @@ class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
         if request.user.is_anonymous: 
             raise PermissionDenied("برای دسترسی به این عمل، باید وارد سیستم شوید.")
         
+        # Get or create the favorite list for the logged-in user
         favorite_list, created = FavoriteList.objects.get_or_create(user=request.user)
         
+        # Validate the product_id provided in the request data
         product_id = request.data.get("product_id")
+        if not product_id:
+            return Response({"message": "شناسه محصول الزامی است."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            product = Product.objects.get(id=product_id)
+            product = Product.objects.get(id=product_id)  
         except Product.DoesNotExist:
-            return Response({"message": "محصول پیدا نشد."}, status=status.HTTP_400_BAD_REQUEST)
+            raise NotFound(detail="محصول پیدا نشد.", code=status.HTTP_404_NOT_FOUND)
+        
+        # Check if the product is already in the user's favorite list
         if favorite_list.has_product(product):
-            message = f"محصول '{product.title}' قبلاً در لیست علاقه‌مندی‌ها وجود داشته است."
-        else:        
-            favorite_list.add_product(product)
-            message = f"لیست علاقه‌مندی‌ها به‌روزرسانی شد و محصول '{product.title}' اضافه شد."
+            message = f"محصول '{product.title}' قبلاً در لیست علاقه‌مندی‌ها وجود دارد."
+            return Response({"message": message}, status=status.HTTP_200_OK)
+
+        # Add the product to the favorite list
+        favorite_list.add_product(product)
+        message = f"لیست علاقه‌مندی‌ها به‌روزرسانی شد و محصول '{product.title}' اضافه شد."
             
         return Response(
             {
@@ -414,8 +422,8 @@ class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
                 "product_id": product_id,
                 "favorite_list_id": favorite_list.id
             },
-            status=status.HTTP_200_OK
-        )        
+            status=status.HTTP_201_CREATED
+        )       
         
         
 class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
@@ -426,12 +434,35 @@ class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs): 
         """
         Remove a product from the user's favorite list.
+        Requires the user to be logged in.
         """   
-        FavoriteList = FavoriteList.objects.get(user=request.user)
+        if request.user.is_anonymous:
+            raise PermissionDenied("برای دسترسی به این عمل، باید وارد سیستم شوید.")
+        
+        # Get the favorite list for the logged-in user
+        try:
+            favorite_list = FavoriteList.objects.get(user=request.user)
+        except FavoriteList.DoesNotExist:
+            raise NotFound(detail="لیست علاقه‌مندی‌ها پیدا نشد.", code=status.HTTP_404_NOT_FOUND)
+        
+        # Validate the product_id provided in the request data
         product_id = request.data.get("product_id")
-        product = Product.objects.get(id=product_id)
-        FavoriteList.product.remove(product)
-        return Response({"message": "محصول از لیست علاقه مندی حذف شد"}, status=status.HTTP_204_NO_CONTENT)
+        if not product_id:
+            return Response({"message": "شناسه محصول الزامی است."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            raise NotFound(detail="محصول پیدا نشد.", code=status.HTTP_404_NOT_FOUND)
+        
+        # Remove the product from the favorite list
+        if favorite_list.has_product(product):
+            favorite_list.remove_product(product)
+            message = f"محصول '{product.title}' از لیست علاقه‌مندی‌ها حذف شد."
+            return Response({"message": message}, status=status.HTTP_204_NO_CONTENT)
+        
+        message = f"محصول '{product.title}' در لیست علاقه‌مندی‌ها وجود ندارد."
+        return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
     
 # -----------------------------------------------------------------------------
 # Rating and Review Views
