@@ -20,6 +20,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Sum, Count
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
+
 
 # -----------------------------------------------------------------------------
 # Category Views
@@ -347,28 +349,79 @@ class CartView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
+    def get_queryset(self):
+        """
+        Only return the cart for the authenticated user
+        """
+        user_cart = Cart.objects.filter(user=self.request.user)
+        return user_cart
+
+
+    def perform_create(self, serializer):
+        """
+        Create a cart for the authenticated user if one doesn't exist
+        """
+        cart, created = Cart.objects.get_or_create(user=self.request.user)
+        return super().perform_create(serializer)
+
+
+    def post(self, request, *args, **kwargs):
+        """
+        Create a new cart item (product) and add it to the cart.
+        """
+        cart = self.get_queryset().first()
+        if cart:
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(cart=cart)
+                return Response({"message": "محصول با موفقیت به سبد خرید اضافه شد."}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "سبد خرید ایجاد نشد، لطفاً دوباره تلاش کنید."}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = CartProduct.objects.all()
     serializer_class = CartProductSerializer
 
+    def get_object(self):
+        """
+        Return the product object in the cart for the authenticated user.
+        """
+        try:
+            return CartProduct.objects.get(id=self.kwargs["pk"], cart__user=self.request.user)
+        except ObjectDoesNotExist:
+            raise Response({"message": "محصولی با این شناسه در سبد خرید شما پیدا نشد."}, status=status.HTTP_404_NOT_FOUND)
+
+
     def update(self, request, *args, **kwargs):
         """
-        Update product quantity in the cart. Only authenticated users can do this.
+        Update the quantity of the product in the cart. Only authenticated users can do this.
         """
         instance = self.get_object()
-        instance.quantity = request.data.get("quantity", instance.quantity)
+        quantity = request.data.get("quantity", None)
+        
+        # Check if the quantity is valid
+        if quantity is None or quantity <= 0:
+            return Response({"message": "مقدار محصول باید بیشتر از صفر باشد."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check product availability
+        if instance.product.stock < quantity:
+            return Response({"message": "موجودی محصول کافی نیست."}, status=status.HTTP_400_BAD_REQUEST)
+
+        instance.quantity = quantity
         instance.save()
-        return Response({"message": "به روز رسانی با موفقیت انجام شد "}, status=status.HTTP_200_OK)
+        return Response({"message": "به روز رسانی با موفقیت انجام شد."}, status=status.HTTP_200_OK)
+
 
     def destroy(self, request, *args, **kwargs):
         """
-        Remove product from the cart. Only authenticated users can do this.
+        Remove a product from the cart. Only authenticated users can do this.
         """
         instance = self.get_object()
         instance.delete()
-        return Response({"message": "محصول از سبد خرید حذف شد"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "محصول از سبد خرید حذف شد."}, status=status.HTTP_204_NO_CONTENT)
+
 
 # -----------------------------------------------------------------------------
 # Favorite List Views
