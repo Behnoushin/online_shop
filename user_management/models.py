@@ -7,6 +7,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     age = models.PositiveIntegerField(null=True, blank=True)
+    fixed_phone = models.CharField(max_length=15, null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False) 
     

@@ -11,6 +11,7 @@ class AboutUsAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     list_per_page = 20
 
+
 class ContactUsAdmin(admin.ModelAdmin):
     list_display = ["id", "email", "phone", "address", "created_at"]
     search_fields = ["email", "phone"]
@@ -21,6 +22,7 @@ class ContactUsAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     list_per_page = 20
 
+
 class FAQAdmin(admin.ModelAdmin):
     list_display = ["id", "question", "answer", "created_at"]
     search_fields = ["question"]
@@ -30,6 +32,7 @@ class FAQAdmin(admin.ModelAdmin):
     readonly_fields = ["id", "created_at", "updated_at"]
     date_hierarchy = 'created_at'
     list_per_page = 20
+    
     
 admin.site.register(AboutUs, AboutUsAdmin)
 admin.site.register(ContactUs, ContactUsAdmin)

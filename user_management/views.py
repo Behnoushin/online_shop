@@ -1,17 +1,26 @@
-from .models import UserProfile, PurchaseHistory, CustomUser
-from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer, OTPSerializer
-from rest_framework import generics, status
-from rest_framework.response import Response
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
-from utility.views import BaseAPIView
-from .permissions import IsStaffUser
-from rest_framework.permissions import IsAuthenticated
-from django.core.exceptions import PermissionDenied
-from django.core.mail import send_mail
-from messaging.utils import get_formatted_message
+import re
 import random
 
+from .models import UserProfile, PurchaseHistory, CustomUser
+from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer, OTPSerializer, ChangePasswordSerializer
+from .permissions import IsStaffUser
+from utility.views import BaseAPIView
+from messaging.utils import get_formatted_message
+
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from django.contrib.auth import authenticate
+from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+
+
+# -----------------------------------------------------------------------------
+# User Registration View
+# -----------------------------------------------------------------------------
 
 class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -51,6 +60,10 @@ class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
         return Response({"message": "ثبت نام با موفقیت انجام شد. کد تأیید به ایمیل شما ارسال شد."}, status=status.HTTP_201_CREATED)
 
 
+# -----------------------------------------------------------------------------
+# User Login View
+# -----------------------------------------------------------------------------
+
 class UserLoginView(BaseAPIView, generics.GenericAPIView):
     serializer_class = UserSerializer
 
@@ -73,6 +86,10 @@ class UserLoginView(BaseAPIView, generics.GenericAPIView):
         return Response({"error": "نام کاربری یا رمز عبور اشتباه است"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# -----------------------------------------------------------------------------
+# User Profile View
+# -----------------------------------------------------------------------------
+
 class UserProfileView(BaseAPIView, generics.RetrieveUpdateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
@@ -88,6 +105,107 @@ class UserProfileView(BaseAPIView, generics.RetrieveUpdateAPIView):
         else:
             raise PermissionDenied("شما باید وارد حساب خود شوید تا به پروفایل دسترسی داشته باشید.")
 
+
+# -----------------------------------------------------------------------------
+# User Profile Update View
+# -----------------------------------------------------------------------------
+
+class UserProfileUpdateView(BaseAPIView, generics.UpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        """
+        This method returns the authenticated user's object to be updated.
+        """
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        
+        # Update first name and last name
+        if 'first_name' in request.data:
+            user.first_name = request.data['first_name']
+        if 'last_name' in request.data:
+            user.last_name = request.data['last_name']
+        
+        # Update email
+        if 'email' in request.data:
+            user.email = request.data['email']
+        
+        # Update phone number and fixed phone number
+        if 'phone_number' in request.data:
+            user.phone_number = request.data['phone_number']
+        if 'fixed_phone' in request.data:
+            user.fixed_phone = request.data['fixed_phone']
+        
+        # Update age
+        if 'age' in request.data:
+            user.age = request.data['age']
+        
+        user.save()
+        return Response({"message": "اطلاعات شما با موفقیت به روزرسانی شد."}, status=status.HTTP_200_OK)
+
+
+# -----------------------------------------------------------------------------
+# Change Password View
+# -----------------------------------------------------------------------------
+
+class ChangePasswordView(BaseAPIView, generics.UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        """
+        This method returns the authenticated user object for password update.
+        """
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        confirm_new_password = request.data.get('confirm_new_password')
+
+        # Check that the old password, new password, and confirm new password are provided
+        if not old_password or not new_password or not confirm_new_password:
+            raise ValidationError({"error": "تمامی فیلدهای رمز عبور باید پر شوند."})
+
+        # Check that the new password is at least 8 characters long
+        if len(new_password) < 8:
+            raise ValidationError({"error": "رمز عبور جدید باید حداقل ۸ کاراکتر داشته باشد."})
+
+        # Check that the new password contains at least one number
+        if not re.search(r'\d', new_password):
+            raise ValidationError({"error": "رمز عبور جدید باید حاوی حداقل یک عدد باشد."})
+
+        # Check that the new password contains at least one uppercase letter
+        if not re.search(r'[A-Z]', new_password):
+            raise ValidationError({"error": "رمز عبور جدید باید حاوی حداقل یک حرف بزرگ انگلیسی باشد."})
+
+        # Check that the new password contains at least one lowercase letter
+        if not re.search(r'[a-z]', new_password):
+            raise ValidationError({"error": "رمز عبور جدید باید حاوی حداقل یک حرف کوچک انگلیسی باشد."})
+
+        # Check that the new password and confirm new password match
+        if new_password != confirm_new_password:
+            raise ValidationError({"error": "رمز عبور جدید و تأیید رمز عبور یکسان نیستند."})
+
+        # Check the old password
+        if not user.check_password(old_password):
+            return Response({"error": "رمز عبور قبلی صحیح نیست."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set the new password
+        user.set_password(new_password)
+        user.save()
+
+        return Response({"message": "پسورد شما با موفقیت تغییر یافت."}, status=status.HTTP_200_OK)
+
+
+# -----------------------------------------------------------------------------
+# Purchase History View
+# -----------------------------------------------------------------------------
 
 class PurchaseHistoryView(BaseAPIView, generics.ListAPIView):
     serializer_class = PurchaseHistorySerializer
@@ -123,6 +241,9 @@ class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIVi
         return Response(serializer.data)
 
     
+# -----------------------------------------------------------------------------
+# OTP Validation View
+# -----------------------------------------------------------------------------
     
 class OTPValidationView(BaseAPIView, generics.GenericAPIView):
     serializer_class = OTPSerializer

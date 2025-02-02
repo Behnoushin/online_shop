@@ -22,6 +22,14 @@ class UserSerializer(BaseSerializer):
         model = CustomUser
         fields = "__all__"
 
+class UserProfileUpdateSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        fields = "__all__"
+        
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+
 
 class PurchaseHistorySerializer(BaseSerializer):
     product = ProductSerializer()
