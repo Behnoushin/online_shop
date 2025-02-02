@@ -1,10 +1,12 @@
 from django.db import models
-from django.db.models import Avg
 from django.conf import settings
 from django.utils.timezone import now
-from django.core.exceptions import ValidationError
+from django.urls import reverse
 from utility.models import BaseModel
 
+# -----------------------------------------------------------------------------
+# Category Model
+# -----------------------------------------------------------------------------
 
 class Category(BaseModel):
     name = models.CharField(max_length=200)
@@ -12,6 +14,9 @@ class Category(BaseModel):
     def __str__(self):
         return self.name
 
+# -----------------------------------------------------------------------------
+# Brand Model
+# -----------------------------------------------------------------------------
 
 class Brand(BaseModel): 
     name = models.CharField(max_length=100)
@@ -44,6 +49,9 @@ class Warranty(BaseModel):
         verbose_name_plural = 'Warranties'
         ordering = ['-start_date']
 
+# -----------------------------------------------------------------------------
+# Product Model
+# -----------------------------------------------------------------------------
 
 class Product(BaseModel):
     title = models.CharField(max_length=255)
@@ -57,7 +65,12 @@ class Product(BaseModel):
     def __str__(self):
         return self.title + " - " + str(self.id) 
     
-    
+    def get_share_link(self):
+        return reverse('product-detail', kwargs={'pk': self.pk})
+
+# -----------------------------------------------------------------------------
+# Cart Model
+# -----------------------------------------------------------------------------
 
 class Cart(BaseModel):
     products = models.ManyToManyField(Product)
@@ -69,12 +82,16 @@ class CartProduct(BaseModel):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    
+
+# -----------------------------------------------------------------------------
+# Favorite List Model
+# -----------------------------------------------------------------------------    
     
 class FavoriteList(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product)
     product_count = models.PositiveIntegerField(default=0)
+    
     class Meta:
         ordering = ['-created_at']
         
@@ -102,7 +119,10 @@ class FavoriteList(BaseModel):
     def has_product(self, product):
         return self.products.filter(id=product.id).exists()
 
-    
+# -----------------------------------------------------------------------------
+# Rating and Review Model
+# -----------------------------------------------------------------------------    
+  
 class Rating(BaseModel):
     SCORE_CHOICES = [(i, str(i)) for i in range(6)]
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
@@ -125,7 +145,10 @@ class Review(BaseModel):
     
     def __str__(self):
         return f"{self.user.username} review for {self.product.title}"
-    
+ 
+# -----------------------------------------------------------------------------
+# Coupon Model
+# -----------------------------------------------------------------------------    
     
 class Coupon(BaseModel):
     code = models.CharField(max_length=15, unique=True)
@@ -160,6 +183,9 @@ class Coupon(BaseModel):
             discount = min(discount, self.max_discount)
         return discount
 
+# -----------------------------------------------------------------------------
+# Question and Answer Model
+# -----------------------------------------------------------------------------  
 
 class Question(BaseModel):
     user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
@@ -193,7 +219,10 @@ class Answer(BaseModel):
 
     def __str__(self):
         return f"Answer {self.id} to Question {self.question.id} by {self.user.username}"
-    
+
+# -----------------------------------------------------------------------------
+# Comment Model
+# -----------------------------------------------------------------------------  
     
 class Comment(BaseModel):
     answer = models.ForeignKey('Answer', on_delete=models.CASCADE, related_name='comments')
@@ -204,6 +233,9 @@ class Comment(BaseModel):
     def __str__(self):
         return f"Comment {self.id} on Answer {self.answer.id} by {self.user.username}"
 
+# -----------------------------------------------------------------------------
+# Report Model
+# ----------------------------------------------------------------------------- 
 
 class Report(BaseModel):
     reported_by = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)

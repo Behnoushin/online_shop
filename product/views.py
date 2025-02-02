@@ -265,16 +265,19 @@ class ProductDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
 
     def get(self, request, *args, **kwargs):
         """
-        Get product details along with its ratings and reviews.
+        Get product details along with its ratings, reviews, and share link.
         """
         product = self.get_object()
         ratings = Rating.objects.filter(product=product)
         reviews = Review.objects.filter(product=product)
         average_rating = ratings.aggregate(Avg('score'))['score__avg']
+        share_link = product.get_share_link()
+
         response_data = {
             'product': ProductSerializer(product).data,
             'average_rating': average_rating,
-            'reviews': ReviewSerializer(reviews, many=True).data
+            'reviews': ReviewSerializer(reviews, many=True).data,
+            'share_link': share_link
         }
         return Response(response_data)
 
@@ -793,7 +796,10 @@ class AnswerDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "رای منفی شما ثبت شد."}, status=status.HTTP_200_OK)
         
         return super().perform_update(serializer)
-    
+
+# -----------------------------------------------------------------------------
+# Comment Views
+# -----------------------------------------------------------------------------    
     
 class CommentList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -838,6 +844,9 @@ class CommentList(BaseAPIView, generics.ListCreateAPIView):
         instance.delete()
         return Response({"message": "کامنت شما حذف شد."}, status=status.HTTP_204_NO_CONTENT)
 
+# -----------------------------------------------------------------------------
+# Report Views
+# -----------------------------------------------------------------------------    
 
 class ReportList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
