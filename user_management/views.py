@@ -101,7 +101,12 @@ class UserProfileView(BaseAPIView, generics.RetrieveUpdateAPIView):
         """
         user = self.request.user
         if user.is_authenticated:
-            return UserProfile.objects.get(user=user)
+            
+            try:
+                return UserProfile.objects.get(user=user)
+            except UserProfile.DoesNotExist:
+                raise PermissionDenied("پروفایل کاربری برای شما ایجاد نشده است.")
+            
         else:
             raise PermissionDenied("شما باید وارد حساب خود شوید تا به پروفایل دسترسی داشته باشید.")
 
@@ -217,6 +222,7 @@ class PurchaseHistoryView(BaseAPIView, generics.ListAPIView):
         """
         queryset = PurchaseHistory.objects.filter(user=self.request.user)
         is_delivered = self.request.query_params.get("is_delivered")
+        
         if is_delivered is not None:
             queryset = queryset.filter(is_delivered=is_delivered.lower() == "true")
         return queryset

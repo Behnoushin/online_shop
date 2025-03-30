@@ -46,7 +46,7 @@ class Warranty(BaseModel):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
 
     def __str__(self):
-        return f"Warranty for {self.product.name} from {self.start_date} to {self.end_date}"
+        return f"Warranty for {self.product.title} from {self.start_date} to {self.end_date}"
 
     class Meta:
         verbose_name = 'Warranty'
@@ -64,7 +64,7 @@ class Product(BaseModel):
     category = models.ForeignKey(Category, related_name="products", on_delete=models.CASCADE)
     stock = models.PositiveIntegerField(default=0)
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True)
-    warranty = models.ForeignKey('Warranty', on_delete=models.CASCADE, related_name='products')
+    warranty = models.ForeignKey('Warranty', on_delete=models.CASCADE, related_name='products', null=True, blank=True)
 
     def __str__(self):
         return self.title + " - " + str(self.id) 
@@ -220,7 +220,7 @@ class Coupon(BaseModel):
 
 class Question(BaseModel):
     user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, default="Default Title")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='questions')
     text = models.TextField()
     is_reported = models.BooleanField(default=False)
