@@ -27,6 +27,21 @@ class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserProfileSerializer
 
+    def send_email(self, subject, message, recipient):
+        """
+        Method to send email to user
+        """
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.EMAIL_HOST_USER,  
+                recipient_list=[recipient]
+            )
+        except Exception as e:
+            print(f"خطا در ارسال ایمیل: {e}") 
+
+
     def create(self, request, *args, **kwargs):
         """
         Registers a new user, creates a profile, generates an OTP, and sends a confirmation email.
@@ -50,13 +65,10 @@ class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
         otp_message = get_formatted_message("otp_message", otp_code=otp_code)
         
         welcome_message = get_formatted_message("welcome_message", username=username)
-        
-        send_mail(
-            subject='ثبت‌نام شما با موفقیت انجام شد',
-            message=f"{welcome_message}\n\n{otp_message}",
-            from_email=None ,
-            recipient_list=[user.email]
-        )
+
+        email_content = f"{welcome_message}\n\n{otp_message}"
+
+        self.send_email("ثبت‌نام شما با موفقیت انجام شد", email_content, user.email)
         
         return Response({"message": "ثبت نام با موفقیت انجام شد. کد تأیید به ایمیل شما ارسال شد."}, status=status.HTTP_201_CREATED)
 
