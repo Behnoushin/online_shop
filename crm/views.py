@@ -2,13 +2,18 @@ from rest_framework import generics
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
+
 from product.models import Product, Category, Review, Rating, Coupon
 from product.serializers import ProductSerializer, CategorySerializer
-from datetime import datetime, timedelta
 from user_management.models import CustomUser, PurchaseHistory
 from user_management.serializers import UserSerializer
-from django.db.models import Sum, Count, Avg
+from order.models import Order, OrderItem, Payment
+from shipping.models import Shipment
 from utility.views import SoftDeleteGenericView
+
+from datetime import datetime, timedelta
+from django.db.models import Sum, Count, Avg
+
 
 class ProductUpdate(generics.UpdateAPIView):
     queryset = Product.objects.all()
@@ -55,6 +60,14 @@ class AdminDashboardDataView(RetrieveAPIView):
             "total_coupons_used": Coupon.objects.filter(used_count__gt=0).count(), 
             "most_used_coupon": Coupon.objects.annotate(usage_count=Sum('used_count')).order_by('-usage_count').first(),
             "users_with_highest_discounts": CustomUser.objects.annotate(total_discount=Sum('purchasehistory__product__highest_discount')).order_by('-total_discount')[:5],
+            "total_number_of_orders": Order.objects.count(),
+            "total_revenue": Payment.objects.aggregate(Sum('final_amount'))['final_amount__sum'] or 0,
+            "orders_placed_today": Order.objects.filter(created_at__gte=last_24_hours).count(),
+            "orders_by_status": Order.objects.values('status').annotate(count=Count('id')),
+            "most_sold_products": OrderItem.objects.values('product__title').annotate(sales_count=Sum('quantity')).order_by('-sales_count')[:5],
+            "average_order_value": Order.objects.aggregate(Avg('total_amount'))['total_amount__avg'] or 0,
+            "total_shipment_count": Shipment.objects.count(),
+            "most_used_shipping_method": Shipment.objects.values('shipping_method__name').annotate(count=Count('id')).order_by('-count').first(),
             
         }
         return Response(data)

@@ -3,6 +3,8 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.urls import reverse
 from utility.models import BaseModel
+from datetime import timedelta
+
 
 # -----------------------------------------------------------------------------
 # Category Model
@@ -31,10 +33,13 @@ class Brand(BaseModel):
 # Warranty Model
 # -----------------------------------------------------------------------------
 
+def default_end_date():
+    return now() + timedelta(days=365)
+
 class Warranty(BaseModel):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='warranties')
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(default=now)
+    end_date = models.DateField(default=default_end_date)
     description = models.TextField(blank=True, null=True)
     
     STATUS_CHOICES = [

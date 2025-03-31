@@ -1,9 +1,15 @@
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Order, OrderItem
-from .serializers import OrderSerializer, OrderItemSerializer
+from .models import Order, OrderItem, Payment
+from .serializers import OrderSerializer, OrderItemSerializer, PaymentSerializer
+from .permissions import IsOwnerOrAdmin
 from utility.views import BaseAPIView
+
+
+# -----------------------------------------------------------------------------
+#  Order Views
+# -----------------------------------------------------------------------------
 
 class OrderView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Order.objects.all()
@@ -55,7 +61,9 @@ class OrderDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         """
         super().perform_destroy(instance)
 
-
+# -----------------------------------------------------------------------------
+#  OrderItem Views
+# -----------------------------------------------------------------------------
 
 class OrderItemView(BaseAPIView, generics.ListCreateAPIView):
     serializer_class = OrderItemSerializer
@@ -92,3 +100,24 @@ class OrderItemView(BaseAPIView, generics.ListCreateAPIView):
             "message": "Order item successfully created",
             "order_item": response.data
         }, status=status.HTTP_201_CREATED)
+        
+# -----------------------------------------------------------------------------
+#  Payment Views
+# -----------------------------------------------------------------------------
+
+class PaymentListCreateView(BaseAPIView, generics.ListCreateAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    permission_classes = [IsOwnerOrAdmin]  
+
+    def perform_create(self, serializer):
+        """
+        Saves the current logged-in user as the 'user' field in the Order when creating the payment
+        """
+        serializer.save(order__user=self.request.user)
+
+
+class PaymentDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    permission_classes = [IsOwnerOrAdmin] 

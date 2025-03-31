@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Payment
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "total_amount", "status", "address", "created_at"]
@@ -24,5 +24,20 @@ class OrderItemAdmin(admin.ModelAdmin):
     read_only_fields = ["order", "product"]
     list_per_page = 20
 
+
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ["id", "order", "payment_method", "payment_status", "final_amount", "payment_date"]
+    search_fields = ["order__id", "payment_method", "payment_status"]
+    ordering = ["-payment_date"] 
+    list_filter = ["payment_status", "payment_method", "payment_date"]
+    read_only_fields = ["order", "payment_date"] 
+    list_per_page = 20  
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('order') 
+
+
 admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem, OrderItemAdmin)
+admin.site.register(Payment, PaymentAdmin)

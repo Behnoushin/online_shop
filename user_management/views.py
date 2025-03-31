@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
