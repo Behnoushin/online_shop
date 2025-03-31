@@ -1,8 +1,10 @@
 from django.db import models
 from django.utils import timezone
+
 from user_management.models import Address
 from order.models import Order
 from utility.models import BaseModel
+
 
 class ShippingMethod(BaseModel):
     name = models.CharField(max_length=100)

@@ -7,16 +7,17 @@ class IsOwnerOrAdmin(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if request.method == 'GET':
-            return True
-        if request.user.is_staff:
-            return True 
-        if request.user.is_authenticated and view.kwargs.get('pk'):
-            payment = Payment.objects.get(pk=view.kwargs['pk'])
-            return payment.order.user == request.user 
-        return False
+        return request.method == 'GET' or request.user.is_staff or self.is_owner(request, view)
 
     def has_object_permission(self, request, view, obj):
-        if request.user.is_staff:
-            return True
-        return obj.order.user == request.user 
+        return request.user.is_staff or obj.order.user == request.user
+
+    def is_owner(self, request, view):
+        if not request.user.is_authenticated:
+            return False  
+    
+        payment_id = view.kwargs.get('pk')  
+        if not payment_id:
+            return False 
+
+        return Payment.objects.filter(pk=payment_id, order__user=request.user).exists()

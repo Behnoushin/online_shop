@@ -74,13 +74,13 @@ class FAQDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
 # LocationMap Views
 # -----------------------------------------------------------------------------
 
-class LocationMapListCreateView(generics.ListCreateAPIView):
+class LocationMapListCreateView(BaseAPIView, generics.ListCreateAPIView):
     queryset = LocationMap.objects.all()
     serializer_class = LocationMapSerializer
     permission_classes = [ReadOnlyForAllButAdmin]
 
 
-class LocationMapDetailView(generics.RetrieveUpdateDestroyAPIView):
+class LocationMapDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = LocationMap.objects.all()
     serializer_class = LocationMapSerializer
     permission_classes = [ReadOnlyForAllButAdmin]
@@ -89,13 +89,13 @@ class LocationMapDetailView(generics.RetrieveUpdateDestroyAPIView):
 # TeamMember Views
 # -----------------------------------------------------------------------------
 
-class TeamMemberListCreateView(generics.ListCreateAPIView):
+class TeamMemberListCreateView(BaseAPIView, generics.ListCreateAPIView):
     queryset = TeamMember.objects.all()
     serializer_class = TeamMemberSerializer
     permission_classes = [ReadOnlyForAllButAdmin]
 
 
-class TeamMemberDetailView(generics.RetrieveUpdateDestroyAPIView):
+class TeamMemberDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = TeamMember.objects.all()
     serializer_class = TeamMemberSerializer
     permission_classes = [ReadOnlyForAllButAdmin]
@@ -104,7 +104,7 @@ class TeamMemberDetailView(generics.RetrieveUpdateDestroyAPIView):
 # SiteStat Views
 # -----------------------------------------------------------------------------
 
-class SiteStatListCreateView(generics.ListCreateAPIView):
+class SiteStatListCreateView(BaseAPIView, generics.ListCreateAPIView):
     queryset = SiteStat.objects.all()
     serializer_class = SiteStatSerializer
     permission_classes = [permissions.IsAdminUser]
@@ -113,7 +113,7 @@ class SiteStatListCreateView(generics.ListCreateAPIView):
         serializer.save(updated_by=self.request.user)
 
 
-class SiteStatDetailView(generics.RetrieveUpdateDestroyAPIView):
+class SiteStatDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = SiteStat.objects.all()
     serializer_class = SiteStatSerializer
     permission_classes = [permissions.IsAdminUser]
@@ -122,13 +122,13 @@ class SiteStatDetailView(generics.RetrieveUpdateDestroyAPIView):
 # TermsAndConditions Views
 # -----------------------------------------------------------------------------
 
-class TermsAndConditionsListCreateView(generics.ListCreateAPIView):
+class TermsAndConditionsListCreateView(BaseAPIView, generics.ListCreateAPIView):
     queryset = TermsAndConditions.objects.all()
     serializer_class = TermsAndConditionsSerializer
     permission_classes = [ReadOnlyForAllButAdmin]
 
 
-class TermsAndConditionsDetailView(generics.RetrieveUpdateDestroyAPIView):
+class TermsAndConditionsDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = TermsAndConditions.objects.all()
     serializer_class = TermsAndConditionsSerializer
     permission_classes = [ReadOnlyForAllButAdmin]
@@ -137,13 +137,13 @@ class TermsAndConditionsDetailView(generics.RetrieveUpdateDestroyAPIView):
 # PrivacyPolicy Views
 # -----------------------------------------------------------------------------
 
-class PrivacyPolicyListCreateView(generics.ListCreateAPIView):
+class PrivacyPolicyListCreateView(BaseAPIView, generics.ListCreateAPIView):
     queryset = PrivacyPolicy.objects.all()
     serializer_class = PrivacyPolicySerializer
     permission_classes = [ReadOnlyForAllButAdmin]
 
 
-class PrivacyPolicyDetailView(generics.RetrieveUpdateDestroyAPIView):
+class PrivacyPolicyDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = PrivacyPolicy.objects.all()
     serializer_class = PrivacyPolicySerializer
     permission_classes = [ReadOnlyForAllButAdmin]

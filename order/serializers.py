@@ -21,11 +21,7 @@ class OrderSerializer(BaseSerializer):
 
 
 class PaymentSerializer(BaseSerializer):
-    order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all())
     payment_method = serializers.CharField(max_length=50)  
-    payment_status = serializers.ChoiceField(choices=[('pending', 'Pending'), ('paid', 'Paid')]) 
-    transaction_id = serializers.CharField(max_length=100, required=False, allow_blank=True)  
-    payment_date = serializers.DateTimeField(read_only=True) 
     final_amount = serializers.DecimalField(max_digits=10, decimal_places=2) 
 
     class Meta:

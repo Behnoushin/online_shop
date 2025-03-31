@@ -1,6 +1,11 @@
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
+
+
 from .models import Order, OrderItem, Payment
 from .serializers import OrderSerializer, OrderItemSerializer, PaymentSerializer
 from .permissions import IsOwnerOrAdmin
@@ -74,15 +79,27 @@ class OrderItemView(BaseAPIView, generics.ListCreateAPIView):
         Filter order items by the order ID.
         """
         order_id = self.kwargs['order_id']
+        if not order_id:
+            return OrderItem.objects.none()
         return OrderItem.objects.filter(order_id=order_id)
+
 
     def perform_create(self, serializer):
         """
         Create an order item and update the total amount of the related order.
         """
-        order_id = self.kwargs['order_id']
-        order_item = serializer.save(order_id=order_id)
-        order_item.order.update_total_amount()
+        order_id = self.kwargs.get('order_id')
+        if not order_id:
+            raise ValidationError("Order ID is required.")
+
+        order = get_object_or_404(Order, id=order_id)
+        order_item = serializer.save(order=order)
+
+        try:
+            order.update_total_amount()
+        except Exception as e:
+            raise ValidationError(f"Failed to update total amount: {str(e)}")
+      
         
     def perform_update(self, serializer):
         """
@@ -90,6 +107,7 @@ class OrderItemView(BaseAPIView, generics.ListCreateAPIView):
         """
         order_item = serializer.save()
         order_item.order.update_total_amount()
+
 
     def create(self, request, *args, **kwargs):
         """
