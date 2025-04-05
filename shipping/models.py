@@ -23,9 +23,8 @@ class ShippingMethod(BaseModel):
         """
         Calculate shipping cost based on weight and distance.
         """
-        base_cost = self.cost
-        additional_cost = (weight * 0.5) + (distance * 0.2)
-        return base_cost + additional_cost
+        return self.cost + (weight * 0.5) + (distance * 0.2)
+
     
     
 class Shipment(BaseModel):
@@ -35,7 +34,7 @@ class Shipment(BaseModel):
         ('pending', 'Pending'),
     ]
     
-    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="shipment")
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, null=True, blank=True, related_name="shipment")
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
     shipping_method = models.ForeignKey(ShippingMethod, on_delete=models.SET_NULL, null=True, blank=True)
     tracking_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
@@ -47,7 +46,10 @@ class Shipment(BaseModel):
 
       
     def __str__(self):
-        return f"Shipment for Order {self.order.id} - {'Delivered' if self.is_delivered else 'In Transit'}"
+        if self.order:
+            return f"Shipment for Order {self.order.id} - {'Delivered' if self.is_delivered else 'In Transit'}"
+        else:
+            return "Shipment without Order"
 
     class Meta:
         ordering = ['-shipped_date']

@@ -239,7 +239,7 @@ class Question(BaseModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Question {self.id} by {self.user.username} about {self.product.name}"
+        return f"Question {self.id} by {self.user.username} about {self.product.title}"
 
 
 class Answer(BaseModel):

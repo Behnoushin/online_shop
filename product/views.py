@@ -1,7 +1,7 @@
 from .models import (
     Product, Category, Cart, CartProduct, FavoriteList, Rating, 
     Review, Coupon, Warranty, Brand, Question, Answer, Comment,
-    Report, RatingBrand, ReviewBrand,
+    RatingBrand, ReviewBrand,Report,
 )
 from .serializers import (
     ProductSerializer, CategorySerializer, CartSerializer, 
@@ -237,7 +237,6 @@ class WarrantyList(BaseAPIView, generics.ListCreateAPIView):
         """
         serializer.save()
 
-
 class WarrantyDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = Warranty.objects.all()
     serializer_class = WarrantySerializer
@@ -250,8 +249,8 @@ class WarrantyDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
             return "منقضی شده"
         else:
             return "فعال"
-
-
+        
+        
     def get(self, request, *args, **kwargs):
         """
         Get warranty details for a product by its ID.
@@ -261,17 +260,17 @@ class WarrantyDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
             warranty = Warranty.objects.get(product_id=product_id)
         except Warranty.DoesNotExist:
             return Response({"message": "این محصول گارانتی ندارد."}, status=status.HTTP_404_NOT_FOUND)
-        
-        status = self.get_warranty_status(warranty)
+
+        warranty_status = self.get_warranty_status(warranty)  
         data = {
             'product': warranty.product.name,
             'guarantee_duration': f"{warranty.start_date} تا {warranty.end_date}",
-            'status': status,
-            'remaining_time': str(warranty.end_date - timezone.now().date()) if status == 'فعال' else '0',
+            'status': warranty_status,
+            'remaining_time': str(warranty.end_date - timezone.now().date()) if warranty_status == 'فعال' else '0',
         }
         return Response(data, status=status.HTTP_200_OK)
-
-
+    
+    
     def put(self, request, *args, **kwargs):
         """
         Update warranty details for a product by its ID.
@@ -280,7 +279,7 @@ class WarrantyDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         try:
             warranty = Warranty.objects.get(product_id=product_id)
         except Warranty.DoesNotExist:
-            return Response({"message": "این محصول گارانتی ندارد."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "این محصول گارانتی ندارد."}, status=404)
 
         data = request.data
         warranty.start_date = data.get('start_date', warranty.start_date)
@@ -376,7 +375,7 @@ class PopularProductsView(BaseAPIView, generics.ListAPIView):
         """
         return Product.objects.annotate(
             total_reviews=Count('review', distinct=True),
-            avg_rating=Avg('rating__score')
+            avg_rating=Avg('ratings__score')
         ).order_by('-total_reviews', '-avg_rating')[:10]
 
 
@@ -460,9 +459,8 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         """
         try:
             return CartProduct.objects.get(id=self.kwargs["pk"], cart__user=self.request.user)
-        except ObjectDoesNotExist:
-            raise Response({"message": "محصولی با این شناسه در سبد خرید شما پیدا نشد."}, status=status.HTTP_404_NOT_FOUND)
-
+        except CartProduct.DoesNotExist:
+            raise NotFound(detail="محصولی با این شناسه در سبد خرید شما پیدا نشد.")
 
     def update(self, request, *args, **kwargs):
         """
@@ -471,18 +469,15 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         quantity = request.data.get("quantity", None)
         
-        # Check if the quantity is valid
         if quantity is None or quantity <= 0:
             return Response({"message": "مقدار محصول باید بیشتر از صفر باشد."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check product availability
         if instance.product.stock < quantity:
             return Response({"message": "موجودی محصول کافی نیست."}, status=status.HTTP_400_BAD_REQUEST)
 
         instance.quantity = quantity
         instance.save()
         return Response({"message": "به روز رسانی با موفقیت انجام شد."}, status=status.HTTP_200_OK)
-
 
     def destroy(self, request, *args, **kwargs):
         """
@@ -497,7 +492,7 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
 # Favorite List Views
 # -----------------------------------------------------------------------------
 
-class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
+class FavoriteListView(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = FavoriteList.objects.all()
     serializer_class = FavoritelistSerializer
@@ -547,8 +542,7 @@ class FavoriteListView (BaseAPIView, generics.ListCreateAPIView):
             },
             status=status.HTTP_201_CREATED
         )       
-        
-        
+
 class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = FavoriteList.objects.all()
@@ -563,9 +557,8 @@ class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
             raise PermissionDenied("برای دسترسی به این عمل، باید وارد سیستم شوید.")
         
         # Get the favorite list for the logged-in user
-        try:
-            favorite_list = FavoriteList.objects.get(user=request.user)
-        except FavoriteList.DoesNotExist:
+        favorite_list = FavoriteList.objects.filter(user=request.user).first()
+        if not favorite_list:
             raise NotFound(detail="لیست علاقه‌مندی‌ها پیدا نشد.", code=status.HTTP_404_NOT_FOUND)
         
         # Validate the product_id provided in the request data
@@ -586,7 +579,8 @@ class RemoveFromFavoriteList(BaseAPIView, generics.DestroyAPIView):
         
         message = f"محصول '{product.title}' در لیست علاقه‌مندی‌ها وجود ندارد."
         return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
-  
+
+
 # -----------------------------------------------------------------------------
 # Rating and Review Views for Brands
 # -----------------------------------------------------------------------------
@@ -724,7 +718,7 @@ class ReviewBrandEditDeleteView(BaseAPIView, generics.RetrieveUpdateDestroyAPIVi
 # -----------------------------------------------------------------------------
     
 class RatingView(BaseAPIView, generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
     filter_backends = [DjangoFilterBackend]
@@ -735,7 +729,7 @@ class RatingView(BaseAPIView, generics.ListCreateAPIView):
         Check if the user already rated the product.
         """
         if Rating.objects.filter(user=self.request.user, product=serializer.validated_data['product']).exists():
-            raise ValidationError("شما قبلاً امتیاز داده‌اید.")
+            raise ValidationError("شما قبلاً امتیاز داده‌اید.")  
         serializer.save(user=self.request.user)
 
 
@@ -748,7 +742,7 @@ class RatingView(BaseAPIView, generics.ListCreateAPIView):
     
     
 class ReviewView(BaseAPIView, generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     filter_backends = [DjangoFilterBackend]
@@ -1132,11 +1126,19 @@ class CommentList(BaseAPIView, generics.ListCreateAPIView):
 
 # -----------------------------------------------------------------------------
 # Report Views
-# -----------------------------------------------------------------------------    
-
+# ----------------------------------------------------------------------------- 
+   
 class ReportList(BaseAPIView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ReportSerializer
+
+    queryset = Report.objects.all()
+
+    def get_queryset(self):
+        """
+        To restore reports for the current user or all reports (if necessary).
+        """
+        return Report.objects.filter(reported_by=self.request.user)
 
     def perform_create(self, serializer):
         """
@@ -1149,11 +1151,16 @@ class ReportList(BaseAPIView, generics.ListCreateAPIView):
         if content_type not in ['question', 'answer']:
             return Response({"message": "نوع محتوا نامعتبر است."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if content_type == 'question':
-            content_object = Question.objects.get(id=object_id)
-            
-        else:
-            content_object = Answer.objects.get(id=object_id)
+        if not object_id:
+            return Response({"message": "شناسه شیء الزامی است."}, status=status.HTTP_400_BAD_REQUEST)
 
-        report = serializer.save(reported_by=self.request.user)
+        try:
+            if content_type == 'question':
+                content_object = Question.objects.get(id=object_id)
+            else:
+                content_object = Answer.objects.get(id=object_id)
+        except (Question.DoesNotExist, Answer.DoesNotExist):
+            return Response({"message": "شیء مورد نظر پیدا نشد."}, status=status.HTTP_404_NOT_FOUND)
+
+        report = serializer.save(reported_by=self.request.user, content_object=content_object)
         return Response({"message": "گزارش تخلف شما با موفقیت ثبت شد."}, status=status.HTTP_201_CREATED)
