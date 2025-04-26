@@ -43,10 +43,8 @@ class PurchaseHistorySerializer(BaseSerializer):
     def get_total_cost(self, obj):
         return obj.total_cost()
     
-class OTPSerializer(BaseSerializer):
+class EmailSerializer(BaseSerializer):
     email = serializers.EmailField()
-    otp_code = serializers.IntegerField()
-
-    class Meta(BaseSerializer.Meta):
+    class Meta:
         model = CustomUser
-        fields = ['email', 'otp_code']
+        fields = ['email']

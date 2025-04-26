@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import(
     UserRegistrationView, UserProfileView, PurchaseHistoryView , 
-    PurchaseHistoryDetailView, OTPValidationView, ChangePasswordView,
+    PurchaseHistoryDetailView, SendOTPView, ChangePasswordView,
     UserProfileUpdateView,
     )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -15,5 +15,5 @@ urlpatterns = [
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path("purchasehistory/", PurchaseHistoryView.as_view(), name="purchase-history"),
     path("purchase-history/<int:pk>/", PurchaseHistoryDetailView.as_view(), name="purchase-history-detail"),
-    path("validate-otp/", OTPValidationView.as_view(), name="validate-otp"),
+    path("validate-otp/", SendOTPView.as_view(), name="validate-otp"),
 ]

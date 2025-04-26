@@ -2,7 +2,7 @@ import re
 import random
 
 from .models import UserProfile, PurchaseHistory, CustomUser
-from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer, OTPSerializer, ChangePasswordSerializer
+from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer, ChangePasswordSerializer, EmailSerializer
 from .permissions import IsStaffUser
 from utility.views import BaseAPIView
 from messaging.utils import get_formatted_message
@@ -46,6 +46,7 @@ class UserRegistrationView(BaseAPIView, generics.CreateAPIView):
         """
         Registers a new user, creates a profile, generates an OTP, and sends a confirmation email.
         """
+        data = request.data
         username = request.data.get("username")
         password = request.data.get("password")
         email = request.data.get("email")
@@ -263,31 +264,36 @@ class PurchaseHistoryDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIVi
 # -----------------------------------------------------------------------------
 # OTP Validation View
 # -----------------------------------------------------------------------------
-    
-class OTPValidationView(BaseAPIView, generics.GenericAPIView):
-    serializer_class = OTPSerializer
-    
+
+class SendOTPView(BaseAPIView, generics.GenericAPIView):
+    serializer_class = EmailSerializer
+
     def post(self, request, *args, **kwargs):
         """
-        Validates the OTP and activates the user account if the OTP is correct.
+        Generates and sends an OTP, saves it in cache with a timeout.
         """
+        # Step 1: Validate the incoming request data using the serializer
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Step 2: Get the email from the validated data (This is where the problem was)
         email = serializer.validated_data['email']
-        otp_code = serializer.validated_data['otp_code']
 
-        try:
-            user = CustomUser.objects.get(email=email, otp_code=otp_code)
-            
-            if not user.is_active:
-                user.is_active = True
-                user.otp_code = None
-                user.save()
-                return Response({"message": "ایمیل تأیید شد و حساب کاربری فعال شد."}, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "کاربر قبلاً فعال شده است."}, status=status.HTTP_400_BAD_REQUEST)
+        # Step 3: Check if there is an existing valid OTP for this email
+        cache_key = f"otp_{email}"
+        existing_otp = cache.get(cache_key)
+        if existing_otp:
+            return Response({"error": "کد تأیید قبلی هنوز معتبر است. لطفاً کمی صبر کنید."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        except CustomUser.DoesNotExist:
-            return Response({"error": "کد تأیید یا ایمیل اشتباه است."}, status=status.HTTP_400_BAD_REQUEST)
-            
+        # Step 4: Generate a new 6-digit OTP
+        otp_code = random.randint(100000, 999999)
+
+        # Step 5: Save the OTP in cache with a timeout (e.g., 2 minutes)
+        cache.set(cache_key, otp_code, timeout=120)
+
+        # Step 6: Send the OTP (currently just printing; replace with actual email sending in production)
+        print(f"Sending OTP {otp_code} to {email}")
+
+        return Response({"message": "کد تأیید با موفقیت ارسال شد."}, status=status.HTTP_200_OK)
