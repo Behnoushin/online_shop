@@ -475,6 +475,7 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         if instance.product.stock < quantity:
             return Response({"message": "موجودی محصول کافی نیست."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # TODO: avoid database race condition using F
         instance.quantity = quantity
         instance.save()
         return Response({"message": "به روز رسانی با موفقیت انجام شد."}, status=status.HTTP_200_OK)

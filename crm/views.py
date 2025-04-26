@@ -35,7 +35,7 @@ class AdminDashboardDataView(RetrieveAPIView):
         
 
         data = {
-            
+            #TODO: why there are some duplicate key in this, fix it put the right one here.
             "total_number_of_users": CustomUser.objects.count(),
             "total_number_of_orders": PurchaseHistory.objects.count(),
             "revenue": PurchaseHistory.objects.aggregate(Sum('product__price'))['product__price__sum'] or 0,
