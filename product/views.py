@@ -20,7 +20,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, IsAuthenticatedOrReadOnly
 
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg, Sum, Count
+from django.db.models import Avg, Sum, Count, F
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
@@ -475,7 +475,7 @@ class CartProductsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
         if instance.product.stock < quantity:
             return Response({"message": "موجودی محصول کافی نیست."}, status=status.HTTP_400_BAD_REQUEST)
 
-        instance.quantity = quantity
+        instance.quantity = F('quantity') + (quantity - instance.quantity)
         instance.save()
         return Response({"message": "به روز رسانی با موفقیت انجام شد."}, status=status.HTTP_200_OK)
 

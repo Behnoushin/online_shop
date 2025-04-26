@@ -39,7 +39,6 @@ class TeamMemberSerializer(BaseSerializer):
 
 
 class SiteStatSerializer(BaseSerializer):
-    updated_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False) #I did this because I wanted to include the updated_by field in the serializer to store and retrieve the user who updated the SiteStat.
 
     class Meta:
         model = SiteStat
