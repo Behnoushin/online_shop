@@ -20,6 +20,7 @@ class BrandSerializer(BaseSerializer):
         fields = "__all__"
         
         
+        
 class WarrantySerializer(BaseSerializer):
     class Meta:
         model = Warranty
@@ -142,4 +143,3 @@ class ReportSerializer(BaseSerializer):
     class Meta:
         model = Report
         fields = "__all__"
-

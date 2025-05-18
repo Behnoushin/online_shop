@@ -22,9 +22,11 @@ class UserSerializer(BaseSerializer):
         model = CustomUser
         fields = "__all__"
 
+
 class UserProfileUpdateSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         fields = "__all__"
+        
         
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
@@ -42,7 +44,7 @@ class PurchaseHistorySerializer(BaseSerializer):
         
     def get_total_cost(self, obj):
         return obj.total_cost()
-    
+
 class EmailSerializer(BaseSerializer):
     email = serializers.EmailField()
     class Meta:

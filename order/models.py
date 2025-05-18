@@ -67,8 +67,7 @@ class OrderItem(BaseModel):
         Calculate the total price of each item 
         """
         return self.product.price * self.quantity
-    
-    
+        
     
 class Payment(BaseModel):
     order = models.OneToOneField(Order, related_name='payment', on_delete=models.CASCADE)

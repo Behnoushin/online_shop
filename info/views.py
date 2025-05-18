@@ -1,3 +1,8 @@
+# -------------------   Django imports ------------------------
+from django_filters.rest_framework import DjangoFilterBackend
+# -------------------  DRF imports   ------------------------
+from rest_framework import generics, permissions
+# -------------------   Apps imports ------------------------
 from .models import(
     AboutUs, ContactUs, FAQ, LocationMap,
     TeamMember, SiteStat, TermsAndConditions,
@@ -8,21 +13,8 @@ from .serializers import(
     LocationMapSerializer, TeamMemberSerializer, SiteStatSerializer,
     TermsAndConditionsSerializer, PrivacyPolicySerializer
     )
+from .permissions import ReadOnlyForAllButAdmin
 from utility.views import BaseAPIView
-from rest_framework import generics, permissions
-
-
-class ReadOnlyForAllButAdmin(permissions.BasePermission):
-    """
-    All users (even unauthenticated ones) can view the data,
-    but only admins are allowed to create, update, or delete.
-    """
-    def has_permission(self, request, view):
-        # Allow all GET (read-only) requests
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        # Only admins can modify the data
-        return request.user and request.user.is_staff
 
 
 # -----------------------------------------------------------------------------
@@ -33,6 +25,9 @@ class AboutUsList(BaseAPIView, generics.ListCreateAPIView):
     queryset = AboutUs.objects.all()
     serializer_class = AboutUsSerializer
     permission_classes = [ReadOnlyForAllButAdmin]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title']
+    search_fields = ['title', 'content']
 
 
 class AboutUsDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
@@ -63,6 +58,9 @@ class FAQList(BaseAPIView, generics.ListCreateAPIView):
     queryset = FAQ.objects.all()
     serializer_class = FAQSerializer
     permission_classes = [ReadOnlyForAllButAdmin]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['category']
+    search_fields = ['question', 'answer']
 
 
 class FAQDetail(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
@@ -92,13 +90,16 @@ class LocationMapDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
 class TeamMemberListCreateView(BaseAPIView, generics.ListCreateAPIView):
     queryset = TeamMember.objects.all()
     serializer_class = TeamMemberSerializer
-    permission_classes = [ReadOnlyForAllButAdmin]
+    permission_classes = [permissions.IsAdminUser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['role', 'email']
+    search_fields = ['name', 'role', 'bio']
 
 
 class TeamMemberDetailView(BaseAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = TeamMember.objects.all()
     serializer_class = TeamMemberSerializer
-    permission_classes = [ReadOnlyForAllButAdmin]
+    permission_classes = [permissions.IsAdminUser]
 
 # -----------------------------------------------------------------------------
 # SiteStat Views

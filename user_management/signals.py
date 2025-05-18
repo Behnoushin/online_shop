@@ -10,3 +10,5 @@ def send_purchase_email(sender, instance, created, **kwargs):
         message = f'کد پیگیری خرید شما: {instance.id}'
         recipient_list = [instance.user.email]
         send_mail(subject, message, 'your_email@gmail.com', recipient_list)
+
+    

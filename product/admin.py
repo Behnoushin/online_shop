@@ -61,6 +61,7 @@ class ProductAdmin(admin.ModelAdmin):
         return round(avg, 2) if avg else "No ratings yet"
     avg_rating.short_description = "Average Rating"
 
+
 # -----------------------------------------------------------------------------
 # CartAdmin
 # -----------------------------------------------------------------------------
