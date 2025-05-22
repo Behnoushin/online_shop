@@ -1,12 +1,17 @@
+# -------------------   Django imports ------------------------
+from django.shortcuts import get_object_or_404
+# -------------------  DRF imports   ------------------------
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+# -------------------   Apps imports ------------------------
 from .models import ShippingMethod, Shipment
 from .serializers import ShippingMethodSerializer, ShipmentSerializer
 from utility.views import BaseAPIView
-from django.shortcuts import get_object_or_404
 
-
+# -----------------------------------------------------------------------------
+#  ShippingMethod Views
+# -----------------------------------------------------------------------------
 class ShippingMethodView(BaseAPIView, generics.ListCreateAPIView):
     queryset = ShippingMethod.objects.all()
     serializer_class = ShippingMethodSerializer
@@ -34,7 +39,9 @@ class ShippingMethodView(BaseAPIView, generics.ListCreateAPIView):
         
         return queryset
 
-
+# -----------------------------------------------------------------------------
+#  Shipment Views
+# -----------------------------------------------------------------------------
 
 class ShipmentView(BaseAPIView, generics.ListCreateAPIView):
     queryset = Shipment.objects.all()
