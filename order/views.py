@@ -1,13 +1,16 @@
+# -------------------   Django imports ------------------------
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
+# -------------------  DRF imports   ------------------------
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from django.shortcuts import get_object_or_404
-from django.core.exceptions import ValidationError
-
-
+# -------------------   Apps imports ------------------------
 from .models import Order, OrderItem, Payment
-from .serializers import OrderSerializer, OrderItemSerializer, PaymentSerializer
+from .serializers import (
+    OrderSerializer, OrderItemSerializer,
+    PaymentSerializer
+    )
 from .permissions import IsOwnerOrAdmin
 from utility.views import BaseAPIView
 

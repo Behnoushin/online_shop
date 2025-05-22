@@ -1,8 +1,11 @@
+# -------------------   Django imports ------------------------
+from django.db.models import Sum, Count, Avg
+# -------------------  DRF imports   ------------------------
 from rest_framework import generics
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
-
+# -------------------  Apps imports   ------------------------
 from product.models import Product, Category, Review, Rating, Coupon
 from product.serializers import ProductSerializer, CategorySerializer
 from user_management.models import CustomUser, PurchaseHistory
@@ -10,9 +13,8 @@ from user_management.serializers import UserSerializer
 from order.models import Order, OrderItem, Payment
 from shipping.models import Shipment
 from utility.views import SoftDeleteGenericView
-
+# -------------------  Other imports   ------------------------
 from datetime import datetime, timedelta
-from django.db.models import Sum, Count, Avg
 
 
 class ProductUpdate(generics.UpdateAPIView):

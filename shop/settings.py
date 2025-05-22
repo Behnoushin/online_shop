@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "utility",
     "django_filters",
     "drf_spectacular",
-    "order",
+    "order.apps.OrderConfig",
     "messaging",
     "errors_handler",
     "shipping",
