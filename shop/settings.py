@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "info",
-    "product",
+    "product.apps.ProductConfig",
     "user_management.apps.UserManagementConfig",
     "rest_framework",
     "rest_framework_simplejwt",
@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     "order.apps.OrderConfig",
     "messaging",
     "errors_handler",
-    "shipping",
+    "shipping.apps.ShippingConfig",
     #"usermanagement",
     #"products",
 ]

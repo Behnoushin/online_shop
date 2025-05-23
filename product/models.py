@@ -1,14 +1,19 @@
+# -------------------   Django imports ------------------------
 from django.db import models
 from django.conf import settings
 from django.utils.timezone import now
 from django.urls import reverse
+from django.core.exceptions import ValidationError
+# -------------------   Apps imports ------------------------
 from utility.models import BaseModel
+from .choices import WarrantyStatus, RatingStatus
+# -------------------   Other imports ------------------------
 from datetime import timedelta
 
 
-# -----------------------------------------------------------------------------
-# Category Model
-# -----------------------------------------------------------------------------
+##################################################################################
+#                             Category Model                                     #
+##################################################################################
 
 class Category(BaseModel):
     name = models.CharField(max_length=200)
@@ -16,9 +21,9 @@ class Category(BaseModel):
     def __str__(self):
         return self.name
 
-# -----------------------------------------------------------------------------
-# Brand Model
-# -----------------------------------------------------------------------------
+##################################################################################
+#                             Brand Model                                        #
+##################################################################################
 
 class Brand(BaseModel): 
     name = models.CharField(max_length=100)
@@ -29,9 +34,9 @@ class Brand(BaseModel):
     def __str__(self):
         return self.name
 
-# -----------------------------------------------------------------------------
-# Warranty Model
-# -----------------------------------------------------------------------------
+##################################################################################
+#                             Warranty Model                                     #
+##################################################################################
 
 def default_end_date():
     return now() + timedelta(days=365)
@@ -41,26 +46,32 @@ class Warranty(BaseModel):
     start_date = models.DateField(default=now)
     end_date = models.DateField(default=default_end_date)
     description = models.TextField(blank=True, null=True)
-    
-    STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('expired', 'Expired'),
-        ('pending', 'Pending'),
-        ('canceled', 'Canceled'),
-    ]
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(
+        max_length=10, 
+        choices=WarrantyStatus.choices, 
+        default=WarrantyStatus.ACTIVE
+        )
 
     def __str__(self):
         return f"Warranty for {self.product.title} from {self.start_date} to {self.end_date}"
-
+    
+    def clean(self):
+        super().clean()
+        if self.end_date <= self.start_date:
+            raise ValidationError("Warranty end date must be after start date.")
+        
+    def save(self, *args, **kwargs):
+        self.clean()  
+        super().save(*args, **kwargs)
+        
     class Meta:
         verbose_name = 'Warranty'
         verbose_name_plural = 'Warranties'
         ordering = ['-start_date']
 
-# -----------------------------------------------------------------------------
-# Product Model
-# -----------------------------------------------------------------------------
+##################################################################################
+#                             Product Model                                      #
+##################################################################################
 
 class Product(BaseModel):
     title = models.CharField(max_length=255)
@@ -77,9 +88,9 @@ class Product(BaseModel):
     def get_share_link(self):
         return reverse('product-detail', kwargs={'pk': self.pk})
 
-# -----------------------------------------------------------------------------
-# Cart Model
-# -----------------------------------------------------------------------------
+##################################################################################
+#                             Cart Model                                         #
+##################################################################################
 
 class Cart(BaseModel):
     products = models.ManyToManyField(Product)
@@ -92,9 +103,9 @@ class CartProduct(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
-# -----------------------------------------------------------------------------
-# Favorite List Model
-# -----------------------------------------------------------------------------    
+##################################################################################
+#                           FavoriteList Model                                   #
+##################################################################################   
     
 class FavoriteList(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -128,20 +139,32 @@ class FavoriteList(BaseModel):
     def has_product(self, product):
         return self.products.filter(id=product.id).exists()
     
-# -----------------------------------------------------------------------------
-# Rating and Review Model for Brand
-# -----------------------------------------------------------------------------
+##################################################################################
+#                    Rating and Review Model for Brand                           #
+################################################################################## 
 
 class RatingBrand(BaseModel):
     SCORE_CHOICES = [(i, str(i)) for i in range(6)]
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='ratings')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     score = models.PositiveIntegerField(choices=SCORE_CHOICES, default=0)
-    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved')], default='pending')
+    status = models.CharField(
+        max_length=20,
+        choices=RatingStatus.choices, 
+        default=RatingStatus.PENDING
+        )
 
     def __str__(self):
         return f"{self.user.username} for {self.brand.name} : {self.score}"
 
+    def clean(self):
+        super().clean()
+        if not (0 <= self.score <= 5):
+           raise ValidationError("Score must be between 0 and 5.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 class ReviewBrand(BaseModel):
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='reviews')
@@ -155,19 +178,32 @@ class ReviewBrand(BaseModel):
     def __str__(self):
         return f"{self.user.username} review for {self.brand.name}"
 
-# -----------------------------------------------------------------------------
-# Rating and Review Model for Products
-# -----------------------------------------------------------------------------    
+##################################################################################
+#                    Rating and Review Model for Products                        #
+##################################################################################     
   
 class Rating(BaseModel):
     SCORE_CHOICES = [(i, str(i)) for i in range(6)]
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     score = models.PositiveIntegerField(choices=SCORE_CHOICES, default=0)
-    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved')], default='pending')
+    status = models.CharField(
+        max_length=20, 
+        choices=RatingStatus.choices, 
+        default=RatingStatus.PENDING
+        )
     
     def __str__(self):
         return f"{self.user.username}for {self.product.title} :{self.score}"
+
+    def clean(self):
+        super().clean()
+        if not (0 <= self.score <= 5):
+           raise ValidationError("Score must be between 0 and 5.")
+       
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class Review(BaseModel):
@@ -182,9 +218,9 @@ class Review(BaseModel):
     def __str__(self):
         return f"{self.user.username} review for {self.product.title}"
  
-# -----------------------------------------------------------------------------
-# Coupon Model
-# -----------------------------------------------------------------------------    
+##################################################################################
+#                             Coupon Model                                       #
+##################################################################################  
     
 class Coupon(BaseModel):
     code = models.CharField(max_length=15, unique=True)
@@ -218,10 +254,10 @@ class Coupon(BaseModel):
         if self.max_discount:
             discount = min(discount, self.max_discount)
         return discount
-
-# -----------------------------------------------------------------------------
-# Question and Answer Model
-# -----------------------------------------------------------------------------  
+    
+##################################################################################
+#                      Question and Answer Model                                 #
+################################################################################## 
 
 class Question(BaseModel):
     user = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)
@@ -256,9 +292,9 @@ class Answer(BaseModel):
     def __str__(self):
         return f"Answer {self.id} to Question {self.question.id} by {self.user.username}"
 
-# -----------------------------------------------------------------------------
-# Comment Model
-# -----------------------------------------------------------------------------  
+##################################################################################
+#                           Comment Model                                        #
+##################################################################################
     
 class Comment(BaseModel):
     answer = models.ForeignKey('Answer', on_delete=models.CASCADE, related_name='comments')
@@ -268,10 +304,10 @@ class Comment(BaseModel):
 
     def __str__(self):
         return f"Comment {self.id} on Answer {self.answer.id} by {self.user.username}"
-
-# -----------------------------------------------------------------------------
-# Report Model
-# ----------------------------------------------------------------------------- 
+    
+##################################################################################
+#                           Report Model                                         #
+##################################################################################
 
 class Report(BaseModel):
     reported_by = models.ForeignKey('user_management.CustomUser', on_delete=models.CASCADE)

@@ -9,6 +9,7 @@ class ProductConfig(AppConfig):
         from django.db.models.signals import pre_migrate
         from django.db import models
         from django.apps import apps
+        import product.signals
 
         Product = apps.get_model('product', 'Product')
         CustomUser = apps.get_model('user_management', 'CustomUser')
