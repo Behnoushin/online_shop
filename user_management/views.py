@@ -1,23 +1,24 @@
-import re
-import random
-
-from .models import UserProfile, PurchaseHistory, CustomUser
-from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer, ChangePasswordSerializer, EmailSerializer
-from .permissions import IsStaffUser
-from utility.views import BaseAPIView
-from messaging.utils import get_formatted_message
-
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import ValidationError
-from rest_framework_simplejwt.tokens import RefreshToken
-
+# -------------------   Django imports ------------------------
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.core.cache import cache
+# -------------------  DRF imports   ------------------------
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken
+# -------------------   Apps imports ------------------------
+from .models import UserProfile, PurchaseHistory, CustomUser
+from .serializers import UserProfileSerializer, UserSerializer, PurchaseHistorySerializer, ChangePasswordSerializer, EmailSerializer
+from .permissions import IsStaffUser
+from utility.views import BaseAPIView
+from messaging.utils import get_formatted_message
+# -------------------   Other imports ------------------------
+import re
+import random
 
 
 # -----------------------------------------------------------------------------
