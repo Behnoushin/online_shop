@@ -87,7 +87,9 @@ class Product(BaseModel):
     
     def get_share_link(self):
         return reverse('product-detail', kwargs={'pk': self.pk})
-
+    
+    ALERT_STOCK_THRESHOLD = 5 # Low inventory warning number
+    
 ##################################################################################
 #                             Cart Model                                         #
 ##################################################################################
