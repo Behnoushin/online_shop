@@ -78,17 +78,22 @@ class ChangePasswordSerializer(serializers.Serializer):
 #                  PurchaseHistorySerializer serializers                         #
 ##################################################################################
 
-class PurchaseHistorySerializer(BaseSerializer):
-    product = ProductSerializer()
-    address = AddressSerializer()
-    total_cost = serializers.SerializerMethodField()
 
-    class Meta(BaseSerializer.Meta):
+class PurchaseHistorySerializer(serializers.ModelSerializer):
+    """
+    Serializer for PurchaseHistory model.
+    Handles product name, quantity, price, and formatted purchase date.
+    Validates quantity to be at least 1.
+    purchase_date is read-only and formatted as 'YYYY-MM-DD HH:mm:ss'.
+    """
+    purchase_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    quantity = serializers.IntegerField(min_value=1)
+
+    class Meta:
         model = PurchaseHistory
-        fields = "__all__"
-        
-    def get_total_cost(self, obj):
-        return obj.total_cost()
+        fields = ['id', 'product_name', 'quantity', 'price', 'purchase_date']
+        read_only_fields = ['id', 'purchase_date']
 
 ##################################################################################
 #                        EmailSerializer serializers                             #
