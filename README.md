@@ -1,7 +1,7 @@
 # 🛒 My Online Shop API
 
 <p align="center">
-  <img src="images/online-shop.png" alt="Online Shop Logo" width="300"/>
+  <img src="images/online_shop.png" alt="Online Shop Logo" width="300"/>
 </p>
 
 Welcome to **My Online Shop**, a powerful Django REST Framework-based e-commerce backend system designed to handle everything from user management and product handling to CRM, shipping, and order processing — all built with scalability and modularity in mind.
