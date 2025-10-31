@@ -13,7 +13,7 @@ from .views import (
 urlpatterns = [
     
     # AboutUs URLs
-    path("about/", AboutUsList.as_view(), name="about-list"),
+    path("about/", AboutUsList.aas_view(), name="about-list"),
     path("about/<int:pk>/", AboutUsDetail.as_view(), name="about-detail"),
     
     # Contact Us URLs
