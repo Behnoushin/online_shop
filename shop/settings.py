@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "messaging",
     "errors_handler",
     "shipping.apps.ShippingConfig",
+    "simple_history",
     #"usermanagement",
     #"products",
 ]
@@ -102,7 +103,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "errors_handler.middleware.ExceptionLoggingMiddleware",
-    
+    "simple_history.middleware.HistoryRequestMiddleware",
+ 
 ]
 
 CACHES = {

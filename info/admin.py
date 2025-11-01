@@ -1,14 +1,24 @@
+# -------------------   Django imports ------------------------
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
+# -------------------   Apps imports ------------------------
 from .models import(
     AboutUs, ContactUs, FAQ, LocationMap,
     TeamMember, SiteStat, TermsAndConditions, PrivacyPolicy
     )
 
-class AdminAccessControl(admin.ModelAdmin):
+#############################################
+#           Base Admin Access Control       #
+#############################################
+
+class AdminAccessControl(SimpleHistoryAdmin, admin.ModelAdmin):
     """
-    Base class for restricting access to admins
+    Base class for restricting access to admins and storing history.
     """
-    
+    readonly_fields = ["id", "created_at", "updated_at"]
+    date_hierarchy = "created_at"
+    list_per_page = 20
+
     def has_add_permission(self, request):
         return request.user.is_superuser 
 
@@ -18,6 +28,9 @@ class AdminAccessControl(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser 
 
+#############################################
+#              AboutUs Admin                #
+#############################################
 
 class AboutUsAdmin(AdminAccessControl):
     list_display = ["id", "content", "created_at", "updated_at"]
@@ -25,10 +38,10 @@ class AboutUsAdmin(AdminAccessControl):
     ordering = ["id"]
     list_filter = ["created_at"]
     list_editable = ["content"]
-    readonly_fields = ["id", "created_at", "updated_at"]
-    date_hierarchy = 'created_at'
-    list_per_page = 20
 
+#############################################
+#              ContactUs Admin              #
+#############################################
 
 class ContactUsAdmin(AdminAccessControl):
     list_display = ["id", "email", "phone", "address", "created_at"]
@@ -36,10 +49,10 @@ class ContactUsAdmin(AdminAccessControl):
     ordering = ["id"]
     list_filter = ["email", "created_at"]
     list_editable = ["email", "phone"]
-    readonly_fields = ["id", "created_at", "updated_at"]
-    date_hierarchy = 'created_at'
-    list_per_page = 20
-
+    
+#############################################
+#                FAQ Admin                  #
+#############################################
 
 class FAQAdmin(AdminAccessControl):
     list_display = ["id", "question", "answer", "created_at"]
@@ -47,30 +60,30 @@ class FAQAdmin(AdminAccessControl):
     ordering = ["id"]
     list_filter = ["category", "created_at"]
     list_editable = ["answer"]
-    readonly_fields = ["id", "created_at", "updated_at"]
-    date_hierarchy = 'created_at'
-    list_per_page = 20
 
+#############################################
+#             LocationMap Admin             #
+#############################################
 
 class LocationMapAdmin(AdminAccessControl):
     list_display = ["id", "title", "address", "latitude", "longitude", "created_at"]
     search_fields = ["title", "address"]
     ordering = ["id"]
     list_filter = ["created_at"]
-    readonly_fields = ["id", "created_at", "updated_at"]
-    date_hierarchy = 'created_at'
-    list_per_page = 20
 
+#############################################
+#             TeamMember Admin              #
+#############################################
 
 class TeamMemberAdmin(AdminAccessControl):
     list_display = ["id", "name", "role", "email", "created_at"]
     search_fields = ["name", "role", "email"]
     ordering = ["id"]
     list_filter = ["created_at"]
-    readonly_fields = ["id", "created_at", "updated_at"]
-    date_hierarchy = 'created_at'
-    list_per_page = 20
 
+#############################################
+#               SiteStat Admin              #
+#############################################
 
 class SiteStatAdmin(AdminAccessControl):
     list_display = ["id", "stat_name", "stat_value", "description", "last_updated", "updated_by"]
@@ -78,10 +91,10 @@ class SiteStatAdmin(AdminAccessControl):
     ordering = ["id"]
     list_filter = ["last_updated"]
     list_editable = ["stat_value", "description"]
-    readonly_fields = ["id", "last_updated"]
-    date_hierarchy = 'last_updated'
-    list_per_page = 20
 
+#############################################
+#         TermsAndConditions Admin          #
+#############################################
 
 class TermsAndConditionsAdmin(AdminAccessControl):
     list_display = ["id", "title", "start_date", "end_date", "created_at"]
@@ -89,10 +102,10 @@ class TermsAndConditionsAdmin(AdminAccessControl):
     ordering = ["id"]
     list_filter = ["start_date", "end_date"]
     list_editable = ["title", "start_date", "end_date"]
-    readonly_fields = ["id", "created_at", "updated_at"]
-    date_hierarchy = 'created_at'
-    list_per_page = 20
 
+#############################################
+#             PrivacyPolicy Admin           #
+#############################################
 
 class PrivacyPolicyAdmin(AdminAccessControl):
     list_display = ["id", "title", "start_date", "end_date", "created_at"]
@@ -100,10 +113,10 @@ class PrivacyPolicyAdmin(AdminAccessControl):
     ordering = ["id"]
     list_filter = ["start_date", "end_date"]
     list_editable = ["title", "start_date", "end_date"]
-    readonly_fields = ["id", "created_at", "updated_at"]
-    date_hierarchy = 'created_at'
-    list_per_page = 20
 
+#############################################
+#           Register All Admins             #
+#############################################
 
 admin.site.register(AboutUs, AboutUsAdmin)
 admin.site.register(ContactUs, ContactUsAdmin)
